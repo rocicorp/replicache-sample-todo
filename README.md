@@ -1,1 +1,1 @@
-# replicache-sample-todo-server
+# replicache-sample-todo
