@@ -23,9 +23,10 @@ func Create() error {
 						os.Getenv(aws_access_key_id),
 						os.Getenv(aws_secret_access_key), ""))))
 	svc := rdsdataservice.New(sess)
-	_, err := svc.ExecuteSql(&rdsdataservice.ExecuteSqlInput{
-		DbClusterOrInstanceArn: aws.String("replicache-demo-notes"),
-		SqlStatements: aws.String("CREATE TABLE User (ID INT AUTO_INCREMENT PRIMARY KEY)"),
+	_, err := svc.ExecuteStatement(&rdsdataservice.ExecuteStatementInput{
+		ResourceArn: aws.String("arn:aws:rds:us-west-2:712907626835:cluster:replicache-demo-notes"),
+		SecretArn: aws.String("arn:aws:secretsmanager:us-west-2:712907626835:secret:rds-db-credentials/cluster-X5NALMLWZ34K55M5ZZVPN2IYOI/admin-65L3ia"),
+		Sql: aws.String("CREATE DATABASE foo"),
 	})
 	return err
 }
