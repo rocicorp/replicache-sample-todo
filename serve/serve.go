@@ -9,7 +9,7 @@ import (
 
 // Handler implements the Zeit Now entrypoint for our server.
 func Handler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello, calling schema()"))
+	w.Write([]byte("Hello, calling schema()\n\n"))
 	err := schema.Create()
-	fmt.Println("err", err)
+	w.Write([]byte(fmt.Sprintf("err: %s", err)))
 }
