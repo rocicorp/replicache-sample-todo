@@ -27,7 +27,6 @@ func create() error {
 	_, err := svc.ExecuteSql(&rdsdataservice.ExecuteSqlInput{
 		DbClusterOrInstanceArn: aws.String("replicache-demo-notes"),
 		SqlStatements: aws.String("CREATE TABLE User (ID INT AUTO_INCREMENT PRIMARY KEY)"),
-	}),
-	fmt.Println("error", err)
+	})
 	return err
 }
