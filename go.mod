@@ -1,4 +1,4 @@
-module roci.dev/replicache-sample-todo-serve
+module roci.dev/replicache-sample-todo
 
 go 1.12
 

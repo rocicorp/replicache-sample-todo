@@ -1,7 +1,6 @@
-package serve
+package schema
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -16,7 +15,7 @@ const (
 	aws_region            = "us-west-2"
 )
 
-func create() error {
+func Create() error {
 	sess := session.Must(session.NewSession(
 		aws.NewConfig().WithRegion(aws_region).WithCredentials(
 				// Have to do this wackiness because not allowed to set AWS env variables in Now for some reason.
