@@ -70,7 +70,7 @@ func Create() error {
 	}
 
 	if len(execStatementOutput.Records) == 1 {
-		_, err = exec(svc, fmt.Sprintf("USE DATABASE %s", name))
+		_, err = exec(svc, fmt.Sprintf("USE '%s'", name))
 		if err != nil {
 			return err
 		}
