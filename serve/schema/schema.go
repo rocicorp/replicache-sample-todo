@@ -14,7 +14,7 @@ const (
 	awsAccessKeyId     = "REPLICANT_AWS_ACCESS_KEY_ID"
 	awsSecretAccessKey = "REPLICANT_AWS_SECRET_ACCESS_KEY"
 	awsRegion          = "us-west-2"
-	schemaVersion      = 1
+	schemaVersion      = 2
 )
 
 var (
@@ -56,17 +56,16 @@ func Create() (err error) {
 	statements := []string{
 		fmt.Sprintf("DROP DATABASE IF EXISTS %s", name),
 		fmt.Sprintf("CREATE DATABASE %s", name),
-		"START TRANSACTION",
 		fmt.Sprintf("CREATE TABLE %s.Meta (Name VARCHAR(16) PRIMARY KEY NOT NULL, IntVal INT)", name),
 		fmt.Sprintf("INSERT INTO %s.Meta Values ('Version', %d)", name, schemaVersion),
-		fmt.Sprintf("CREATE TABLE %s.User (Id INT PRIMARY KEY)", name),
-		"COMMIT",
+		fmt.Sprintf("CREATE TABLE %s.User (Id INT PRIMARY KEY NOT NULL)", name),
+		fmt.Sprintf("CREATE TABLE %s.TodoList (Id INT PRIMARY KEY NOT NULL, Name VARCHAR(255) NOT NULL, OwnerUserId INT NOT NULL, FOREIGN KEY (OwnerUserId) REFERENCES %s.User (Id))", name, name),
+		fmt.Sprintf("CREATE TABLE %s.Todo (Id INT PRIMARY KEY NOT NULL, TodoListId INT NOT NULL, Title VARCHAR(255) NOT NULL, Complete BIT NOT NULL, SortOrder FLOAT(53) NOT NULL, FOREIGN KEY (TodoListId) REFERENCES %s.TodoList (Id))", name, name),
 	}
 
 	for _, s := range statements {
 		_, err = exec(svc, s)
 		if err != nil {
-			fmt.Println("Abandoning transaction")
 			return err
 		}
 	}
