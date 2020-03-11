@@ -32,7 +32,7 @@ func dbName() (string, error) {
 	}
 }
 
-func Create() error {
+func Create() (err error) {
 	sess := session.Must(session.NewSession(
 		aws.NewConfig().WithRegion(awsRegion).WithCredentials(
 			// Have to do this wackiness because not allowed to set AWS env variables in Now for some reason.
@@ -46,65 +46,29 @@ func Create() error {
 		return err
 	}
 
-	beginTransactionOutput, err := svc.BeginTransaction(&rdsdataservice.BeginTransactionInput{
-		ResourceArn: resourceArn,
-		SecretArn:   secretArn,
-	})
+	execStatementOutput, err := exec(svc, fmt.Sprintf("SELECT IntVal FROM %s.Meta WHERE Name = 'Version' LIMIT 1", name))
 	if err != nil {
-		return err
-	}
-	defer func() {
-		_, err = svc.RollbackTransaction(&rdsdataservice.RollbackTransactionInput{
-			ResourceArn:   resourceArn,
-			SecretArn:     secretArn,
-			TransactionId: beginTransactionOutput.TransactionId,
-		})
-		if err != nil {
-			panic(fmt.Errorf("RollbackTransaction failed: %s", err))
-		}
-	}()
-
-	execStatementOutput, err := exec(svc, fmt.Sprintf("SHOW DATABASES LIKE '%s'", name))
-	if err != nil {
-		return err
-	}
-
-	if len(execStatementOutput.Records) == 1 {
-		_, err = exec(svc, fmt.Sprintf("USE '%s'", name))
-		if err != nil {
-			return err
-		}
-		execStatementOutput, err := exec(svc, "SELECT Version FROM Meta LIMIT 1")
-		if err != nil {
-			return err
-		}
-		if len(execStatementOutput.Records) == 1 && *(execStatementOutput.Records[0][0].LongValue) == schemaVersion {
-			return nil
-		}
+		fmt.Printf("ERROR: Invalid database: %s\n", err)
+	} else if len(execStatementOutput.Records) == 1 && *(execStatementOutput.Records[0][0].LongValue) == schemaVersion {
+		return nil
 	}
 
 	statements := []string{
 		fmt.Sprintf("DROP DATABASE IF EXISTS %s", name),
 		fmt.Sprintf("CREATE DATABASE %s", name),
-		fmt.Sprintf("USE DATABASE %s", name),
-		fmt.Sprintf("CREATE TABLE Meta (Version) Values (%d)", schemaVersion),
-		"CREATE TABLE User (Id INT PRIMARY KEY)",
+		"START TRANSACTION",
+		fmt.Sprintf("CREATE TABLE %s.Meta (Name VARCHAR(16) PRIMARY KEY NOT NULL, IntVal INT)", name),
+		fmt.Sprintf("INSERT INTO %s.Meta Values ('Version', %d)", name, schemaVersion),
+		fmt.Sprintf("CREATE TABLE %s.User (Id INT PRIMARY KEY)", name),
+		"COMMIT",
 	}
 
 	for _, s := range statements {
 		_, err = exec(svc, s)
 		if err != nil {
+			fmt.Println("Abandoning transaction")
 			return err
 		}
-	}
-
-	_, err = svc.CommitTransaction(&rdsdataservice.CommitTransactionInput{
-		ResourceArn:   resourceArn,
-		SecretArn:     secretArn,
-		TransactionId: beginTransactionOutput.TransactionId,
-	})
-	if err != nil {
-		return err
 	}
 
 	return nil

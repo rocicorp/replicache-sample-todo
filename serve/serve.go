@@ -11,5 +11,5 @@ import (
 func Handler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hello, calling schema()\n\n"))
 	err := schema.Create()
-	w.Write([]byte(fmt.Sprintf("err: %s", err)))
+	w.Write([]byte(fmt.Sprintf("Error: %s\n", err)))
 }
