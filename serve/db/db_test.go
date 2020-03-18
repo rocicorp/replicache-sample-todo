@@ -10,7 +10,7 @@ import (
 func TestBasics(t *testing.T) {
 	assert := assert.New(t)
 	db := New()
-	out, err := db.Exec("SELECT Now()")
+	out, err := db.Exec("SELECT Now()", nil)
 	assert.NoError(err)
 	assert.Equal(1, len(out.Records))
 	assert.Regexp(`\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}`, *out.Records[0][0].StringValue)
@@ -21,14 +21,14 @@ func TestTransact(t *testing.T) {
 
 	db := New()
 	var err error
-	_, err = db.Exec("DROP DATABASE IF EXISTS test")
+	_, err = db.Exec("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
-	_, err = db.Exec("CREATE DATABASE test")
+	_, err = db.Exec("CREATE DATABASE test", nil)
 	assert.NoError(err)
 	db.Use("test")
-	_, err = db.Exec("CREATE TABLE Foo (Id INT NOT NULL PRIMARY KEY, Count INT NOT NULL)")
+	_, err = db.Exec("CREATE TABLE Foo (Id INT NOT NULL PRIMARY KEY, Count INT NOT NULL)", nil)
 	assert.NoError(err)
-	_, err = db.Exec("INSERT INTO Foo (Id, Count) VALUE (1, 0)")
+	_, err = db.Exec("INSERT INTO Foo (Id, Count) VALUE (1, 0)", nil)
 	assert.NoError(err)
 
 	tc := []struct {
@@ -63,7 +63,7 @@ func TestTransact(t *testing.T) {
 				db.Use("nonexistant")
 			}
 			ret, err = db.Transact(func() (commit bool) {
-				_, err := db.Exec("UPDATE Foo SET Count = Count + 1 WHERE Id = 1")
+				_, err := db.Exec("UPDATE Foo SET Count = Count + 1 WHERE Id = 1", nil)
 				assert.NoError(err, msg)
 				if t.failCommit || t.failRollback {
 					db.Use("nonexistant")
@@ -90,13 +90,13 @@ func TestTransact(t *testing.T) {
 			assert.Nil(recovered, msg)
 		}
 
-		out, err := db.Exec("SELECT Count FROM Foo WHERE Id = 1")
+		out, err := db.Exec("SELECT Count FROM Foo WHERE Id = 1", nil)
 		assert.NoError(err, msg)
 		assert.Equal(1, len(out.Records), msg)
 		assert.Equal(int64(t.expectedVal), *out.Records[0][0].LongValue, msg)
 
 		if t.failCommit || t.failRollback {
-			_, err = db.Exec("ROLLBACK")
+			_, err = db.Exec("ROLLBACK", nil)
 			assert.NoError(err)
 		}
 	}

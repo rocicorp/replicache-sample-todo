@@ -1,8 +1,6 @@
 package todo
 
 import (
-	"fmt"
-
 	"roci.dev/replicache-sample-todo/serve/db"
 )
 
@@ -14,15 +12,21 @@ type Todo struct {
 	Order    float64
 }
 
-func Create(db *db.DB, todo Todo) error {
-	_, err := db.Exec(fmt.Sprintf(
-		"INSERT INTO Todo (Id, TodoListId, Title, Complete, SortOrder) VALUES (%d, %d, '%s', %t, %f)",
-		todo.ID, todo.ListID, todo.Text, todo.Complete, todo.Order))
+func Create(d *db.DB, todo Todo) error {
+	_, err := d.Exec(
+		`INSERT INTO Todo (Id, TodoListId, Title, Complete, SortOrder)
+		VALUES (:id, :listid, :title, :complete, :order)`,
+		db.Params{
+			"id":       todo.ID,
+			"listid":   todo.ListID,
+			"title":    todo.Text,
+			"complete": todo.Complete,
+			"order":    todo.Order})
 	return err
 }
 
-func Has(db *db.DB, id int) (bool, error) {
-	output, err := db.Exec(fmt.Sprintf("SELECT 1 FROM Todo WHERE Id = %d", id))
+func Has(d *db.DB, id int) (bool, error) {
+	output, err := d.Exec("SELECT 1 FROM Todo WHERE Id = :id", db.Params{"id": id})
 	if err != nil {
 		return false, err
 	}

@@ -1,8 +1,6 @@
 package list
 
 import (
-	"fmt"
-
 	"roci.dev/replicache-sample-todo/serve/db"
 )
 
@@ -11,8 +9,8 @@ type List struct {
 	OwnerUserID int
 }
 
-func Get(db *db.DB, id int) (List, bool, error) {
-	output, err := db.Exec(fmt.Sprintf("SELECT (OwnerUserId) FROM TodoList WHERE Id = %d", id))
+func Get(d *db.DB, id int) (List, bool, error) {
+	output, err := d.Exec("SELECT (OwnerUserId) FROM TodoList WHERE Id = :id", db.Params{"id": id})
 	if err != nil {
 		return List{}, false, err
 	}
@@ -25,7 +23,7 @@ func Get(db *db.DB, id int) (List, bool, error) {
 	}, true, nil
 }
 
-func Create(db *db.DB, list List) error {
-	_, err := db.Exec(fmt.Sprintf("INSERT INTO TodoList (Id, OwnerUserId) VALUES (%d, %d)", list.ID, list.OwnerUserID))
+func Create(d *db.DB, list List) error {
+	_, err := d.Exec("INSERT INTO TodoList (Id, OwnerUserId) VALUES (:id, :owner)", db.Params{"id": list.ID, "owner": list.OwnerUserID})
 	return err
 }

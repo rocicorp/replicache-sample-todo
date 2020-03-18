@@ -12,7 +12,7 @@ import (
 func TestBasic(t *testing.T) {
 	assert := assert.New(t)
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test")
+	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)

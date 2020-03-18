@@ -22,19 +22,17 @@ func Create(db *db.DB, name string) (err error) {
 	schemaHash := sha1.Sum([]byte(strings.Join(statements, "\n")))
 	schemaHashStr := hex.EncodeToString(schemaHash[:])
 
-	execStatementOutput, err := db.Exec(fmt.Sprintf("SELECT Value FROM %s.Meta WHERE Name = 'Version' AND Value = '%s' LIMIT 1", name, schemaHashStr))
+	execStatementOutput, err := db.Exec(fmt.Sprintf("SELECT Value FROM %s.Meta WHERE Name = 'Version' AND Value = '%s' LIMIT 1", name, schemaHashStr), nil)
 	if err != nil {
-		fmt.Printf("ERROR: Dropping invalid database: %s\n", err)
+		fmt.Printf("ERROR: Invalid database: %s\n", err)
 	} else if len(execStatementOutput.Records) == 1 {
 		return nil
 	}
 
-	fmt.Printf("Dropping database with old schema...")
-
 	statements = append(statements, fmt.Sprintf("INSERT INTO %s.Meta (Name, Value) VALUES ('Version', '%s')", name, schemaHashStr))
 
 	for _, s := range statements {
-		_, err = db.Exec(s)
+		_, err = db.Exec(s, nil)
 		if err != nil {
 			return err
 		}
