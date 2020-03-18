@@ -39,4 +39,14 @@ We don't currently attempt to migrate data between versions.
 
 # Client
 
-TODO
+```
+# Create a TODO
+# User ID is just an arbitrary integer.
+# If the User ID and/or List ID is unknown, those entities are implicity created.
+curl -H 'Authorization: <userid>' \
+  -d '{"id": 1, "listID": 1, "text": "Take out the trash", "complete": true, "order": 0.5}' \
+  https://replicache-sample-todo.now.sh/serve/todo-create
+
+# Get current Client View
+curl -H 'Authorization: <userid>' https://replicache-sample-todo.now.sh/serve/client-view
+```
