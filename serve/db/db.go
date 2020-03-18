@@ -67,6 +67,7 @@ func (db *DB) Transact(f func() (commit bool)) (bool, error) {
 		if r == nil {
 			return
 		}
+		log.Printf("caught panic: %#v", r)
 		_, err = db.Exec("ROLLBACK", nil)
 		if err != nil {
 			log.Printf("ERROR: Could not rollback transaction: %s", err.Error())

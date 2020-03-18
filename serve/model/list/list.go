@@ -23,6 +23,20 @@ func Get(d *db.DB, id int) (List, bool, error) {
 	}, true, nil
 }
 
+func GetByUser(d *db.DB, userID int) (r []List, err error) {
+	output, err := d.Exec("SELECT Id FROM TodoList WHERE OwnerUserId = :ownerId", db.Params{"ownerId": userID})
+	if err != nil {
+		return nil, err
+	}
+	for _, rec := range output.Records {
+		r = append(r, List{
+			ID:          int(*rec[0].LongValue),
+			OwnerUserID: userID,
+		})
+	}
+	return r, nil
+}
+
 func Create(d *db.DB, list List) error {
 	_, err := d.Exec("INSERT INTO TodoList (Id, OwnerUserId) VALUES (:id, :owner)", db.Params{"id": list.ID, "owner": list.OwnerUserID})
 	return err

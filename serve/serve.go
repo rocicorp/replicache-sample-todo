@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"roci.dev/replicache-sample-todo/serve/db"
+	"roci.dev/replicache-sample-todo/serve/handlers/clientview"
 	"roci.dev/replicache-sample-todo/serve/handlers/todo"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
@@ -44,6 +45,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Path {
 	case "/serve/todo-create":
 		todo.Handle(w, r, db, userID)
+	case "/serve/client-view":
+		clientview.Handle(w, r, db, userID)
 	default:
 		httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
 	}
