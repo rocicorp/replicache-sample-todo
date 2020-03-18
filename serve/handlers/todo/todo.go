@@ -1,4 +1,4 @@
-package serve
+package todo
 
 import (
 	"encoding/json"
@@ -10,23 +10,24 @@ import (
 	"roci.dev/replicache-sample-todo/serve/model/todo"
 	"roci.dev/replicache-sample-todo/serve/model/user"
 	"roci.dev/replicache-sample-todo/serve/types"
+	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
-func handleTodoCreate(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
+func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 	var input types.TodoCreateInput
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
-		clientError(w, err.Error())
+		httperr.ClientError(w, err.Error())
 		return
 	}
 
 	if input.ID == 0 {
-		clientError(w, "id field is required")
+		httperr.ClientError(w, "id field is required")
 		return
 	}
 
 	if input.ListID == 0 {
-		clientError(w, "listID field is required")
+		httperr.ClientError(w, "listID field is required")
 		return
 	}
 
@@ -44,7 +45,7 @@ func handleTodoCreate(w http.ResponseWriter, r *http.Request, db *db.DB, userID 
 	})
 
 	if err != nil {
-		serverError(w, err.Error())
+		httperr.ServerError(w, err.Error())
 		return
 	}
 
@@ -54,14 +55,14 @@ func handleTodoCreate(w http.ResponseWriter, r *http.Request, db *db.DB, userID 
 func ensureUser(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) bool {
 	has, err := user.Has(db, userID)
 	if err != nil {
-		serverError(w, err.Error())
+		httperr.ServerError(w, err.Error())
 		return false
 	}
 
 	if !has {
 		err := user.Create(db, userID)
 		if err != nil {
-			serverError(w, err.Error())
+			httperr.ServerError(w, err.Error())
 			return false
 		}
 	}
@@ -72,7 +73,7 @@ func ensureUser(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) b
 func ensureList(w http.ResponseWriter, r *http.Request, db *db.DB, listID int, ownerUserID int) bool {
 	l, has, err := list.Get(db, listID)
 	if err != nil {
-		serverError(w, err.Error())
+		httperr.ServerError(w, err.Error())
 		return false
 	}
 	if has {
@@ -89,7 +90,7 @@ func ensureList(w http.ResponseWriter, r *http.Request, db *db.DB, listID int, o
 	}
 	err = list.Create(db, l)
 	if err != nil {
-		serverError(w, err.Error())
+		httperr.ServerError(w, err.Error())
 		return false
 	}
 	return true
@@ -98,16 +99,16 @@ func ensureList(w http.ResponseWriter, r *http.Request, db *db.DB, listID int, o
 func ensureTodo(w http.ResponseWriter, r *http.Request, db *db.DB, input types.TodoCreateInput) bool {
 	has, err := todo.Has(db, input.ID)
 	if err != nil {
-		serverError(w, err.Error())
+		httperr.ServerError(w, err.Error())
 		return false
 	}
 	if has {
-		clientError(w, fmt.Sprintf("Specified todo already exists: %d", input.ID))
+		httperr.ClientError(w, fmt.Sprintf("Specified todo already exists: %d", input.ID))
 		return false
 	}
 	err = todo.Create(db, todo.Todo(input))
 	if err != nil {
-		serverError(w, err.Error())
+		httperr.ServerError(w, err.Error())
 		return false
 	}
 	return true

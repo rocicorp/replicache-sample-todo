@@ -2,13 +2,14 @@ package serve
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 
 	"roci.dev/replicache-sample-todo/serve/db"
+	"roci.dev/replicache-sample-todo/serve/handlers/todo"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
+	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
 const (
@@ -22,7 +23,7 @@ const (
 func Handler(w http.ResponseWriter, r *http.Request) {
 	name, err := dbName()
 	if err != nil {
-		serverError(w, err.Error())
+		httperr.ServerError(w, err.Error())
 		return
 	}
 	db := db.New()
@@ -34,7 +35,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	err = schema.Create(db, name)
 	if err != nil {
-		serverError(w, err.Error())
+		httperr.ServerError(w, err.Error())
 		return
 	}
 
@@ -42,9 +43,9 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.URL.Path {
 	case "/serve/todo-create":
-		handleTodoCreate(w, r, db, userID)
+		todo.Handle(w, r, db, userID)
 	default:
-		clientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
+		httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
 	}
 }
 
@@ -62,17 +63,6 @@ func authenticate(w http.ResponseWriter, r *http.Request) (userID int) {
 		return 0
 	}
 	return userID
-}
-
-func serverError(w http.ResponseWriter, logMsg string) {
-	log.Printf("Error: %s", logMsg)
-	w.WriteHeader(http.StatusInternalServerError)
-	w.Write([]byte("Internal Server Error"))
-}
-
-func clientError(w http.ResponseWriter, msg string) {
-	w.WriteHeader(http.StatusBadRequest)
-	w.Write([]byte(msg))
 }
 
 func dbName() (string, error) {
