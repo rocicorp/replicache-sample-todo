@@ -95,7 +95,6 @@ func (db *DB) Transact(f func() (commit bool)) (bool, error) {
 type Params map[string]interface{}
 
 func (db *DB) Exec(sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
-	// TODO: Figure out named params.
 	fmt.Printf("Executing: %s\n", sql)
 
 	var params []*rdsdataservice.SqlParameter
