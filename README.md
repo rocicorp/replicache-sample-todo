@@ -23,15 +23,19 @@ REPLICANT_SAMPLE_TODO_ENV=dev_<your Rocicorp username>
 
 ## Deploy
 
+Just commit to origin/master, it is auto-deployed.
+
+Alternately, you can deploy to your own staging environment with:
+
 ```
-now deploy --prod
+now deploy
 ```
 
 ## Schema
 
-The schema we run against is managed in `schema.go`. Change the version number to change it.
+The schema we run against is managed in `schema.go`. Whenever it is changed, the db is dropped and re-created.
 
-Since this is just a sample app, we currently don't bother trying to migrate data between versions.
+We don't currently attempt to migrate data between versions.
 
 # Client
 
