@@ -2,12 +2,14 @@ package db
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -44,14 +46,49 @@ func (db *DB) Use(dbName string) {
 	db.name = dbName
 }
 
-func (db *DB) Begin() error {
+// Transact() executes the provided function inside an atomic transaction.
+//
+// If the function returns true, the transaction is committed.
+// If the function returns false, the transaction is aborted.
+// If the function panics, the transaction is aborted and the panic is propagated up the stack.
+//
+// The passed function is expected to do its own internal error handling (hence it doesn't
+// return an error).
+//
+// Transact() itself returns an error only in the case where the transaction could not be
+// initiated, committed, or aborted for some reason.
+func (db *DB) Transact(f func() (commit bool)) (bool, error) {
 	_, err := db.Exec("BEGIN")
-	return err
-}
+	if err != nil {
+		return false, errors.Wrap(err, "Could not BEGIN")
+	}
+	defer func() {
+		r := recover()
+		if r == nil {
+			return
+		}
+		_, err = db.Exec("ROLLBACK")
+		if err != nil {
+			log.Printf("ERROR: Could not rollback transaction: %s", err.Error())
+		}
+		panic(r)
+	}()
 
-func (db *DB) Commit() error {
-	_, err := db.Exec("COMMIT")
-	return err
+	ok := f()
+
+	if !ok {
+		_, err = db.Exec("ROLLBACK")
+		if err != nil {
+			return false, errors.Wrap(err, "Could not ROLLBACK")
+		}
+		return false, nil
+	}
+
+	_, err = db.Exec("COMMIT")
+	if err != nil {
+		return false, errors.Wrap(err, "Could not COMMIT")
+	}
+	return true, nil
 }
 
 func (db *DB) Exec(sql string) (*rdsdataservice.ExecuteStatementOutput, error) {

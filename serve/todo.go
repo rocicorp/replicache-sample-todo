@@ -30,25 +30,19 @@ func handleTodoCreate(w http.ResponseWriter, r *http.Request, db *db.DB, userID 
 		return
 	}
 
-	err = db.Begin()
-	if err != nil {
-		serverError(w, err.Error())
-		return
-	}
+	_, err = db.Transact(func() (commit bool) {
+		if !ensureUser(w, r, db, userID) {
+			return false
+		}
+		if !ensureList(w, r, db, input.ListID, userID) {
+			return false
+		}
+		if !ensureTodo(w, r, db, input) {
+			return false
+		}
+		return true
+	})
 
-	if !ensureUser(w, r, db, userID) {
-		return
-	}
-
-	if !ensureList(w, r, db, input.ListID, userID) {
-		return
-	}
-
-	if !ensureTodo(w, r, db, input) {
-		return
-	}
-
-	err = db.Commit()
 	if err != nil {
 		serverError(w, err.Error())
 		return
