@@ -10,8 +10,9 @@ Persistence is against AWS Aurora (MySQL flavor).
 
 ### Development
 
+1. Install [zeit now](https://zeit.co/download)
 1. Get the Rocicorp AWS credentials and put them in (.aws/credentials) on your machine
-2. Add `.env` file to the root of this repository containing:
+1. Add `.env` file to the root of this repository containing:
 
 ```
 REPLICANT_AWS_ACCESS_KEY_ID=<access key from .aws/credentials>
