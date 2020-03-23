@@ -14,8 +14,3 @@ type TodoList struct {
 }
 
 type TodoCreateInput Todo
-
-type ClientViewOutput struct {
-	LastMutationID int                    `json:"lastMutationId"`
-	View           map[string]interface{} `json:"view"`
-}
