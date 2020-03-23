@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
+	servetypes "roci.dev/diff-server/serve/types"
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/todo"
@@ -24,14 +26,15 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 			httperr.ServerError(w, err.Error())
 			return false
 		}
-		out := types.ClientViewOutput{
-			View: map[string]interface{}{},
+		out := servetypes.ClientViewResponse{
+			ClientView:     map[string]interface{}{},
+			LastMutationID: uint64(time.Now().Unix()), // TODO actually return real mutation IDs
 		}
 		for _, l := range lists {
-			out.View[fmt.Sprintf("/list/%d", l.ID)] = types.TodoList(l)
+			out.ClientView[fmt.Sprintf("/list/%d", l.ID)] = types.TodoList(l)
 		}
 		for _, t := range todos {
-			out.View[fmt.Sprintf("/todo/%d", t.ID)] = types.Todo(t)
+			out.ClientView[fmt.Sprintf("/todo/%d", t.ID)] = types.Todo(t)
 		}
 		err = json.NewEncoder(w).Encode(out)
 		if err != nil {
