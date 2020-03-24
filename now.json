@@ -9,7 +9,7 @@
     "env": {
         "REPLICANT_AWS_ACCESS_KEY_ID": "@aws_access_key_id",
         "REPLICANT_AWS_SECRET_ACCESS_KEY": "@aws_secret_access_key",
-        "REPLICANT_SAMPLE_TODO_ENV": "@replicant_sample_todo_env",
+        "REPLICANT_SAMPLE_TODO_ENV": "@replicant_sample_todo_env"
     },
     "build": {
         "env": {
