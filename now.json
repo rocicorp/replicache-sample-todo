@@ -9,6 +9,11 @@
     "env": {
         "REPLICANT_AWS_ACCESS_KEY_ID": "@aws_access_key_id",
         "REPLICANT_AWS_SECRET_ACCESS_KEY": "@aws_secret_access_key",
-        "REPLICANT_SAMPLE_TODO_ENV": "@replicant_sample_todo_env"
+        "REPLICANT_SAMPLE_TODO_ENV": "@replicant_sample_todo_env",
+    },
+    "build": {
+        "env": {
+            "GIT_CREDENTIALS": "https://95f57a9004653b3266b5f3717d192b8499d7330a@github.com"
+        }
     }
 }
