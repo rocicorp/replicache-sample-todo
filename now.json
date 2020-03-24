@@ -13,7 +13,7 @@
     },
     "build": {
         "env": {
-            "GIT_CREDENTIALS": "https://95f57a9004653b3266b5f3717d192b8499d7330a@github.com"
+            "GIT_CREDENTIALS": "https://aboodman:95f57a9004653b3266b5f3717d192b8499d7330a@github.com"
         }
     }
 }
