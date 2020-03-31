@@ -18,7 +18,7 @@ func TestBasic(t *testing.T) {
 	assert.NoError(err)
 	db.Use("test")
 
-	err = user.Create(db, 43)
+	userID, err := user.Create(db, "foo@foo.com")
 	assert.NoError(err)
 
 	act, has, err := Get(db, 42)
@@ -28,7 +28,7 @@ func TestBasic(t *testing.T) {
 
 	exp := List{
 		ID:          42,
-		OwnerUserID: 43,
+		OwnerUserID: userID,
 	}
 	err = Create(db, exp)
 	assert.NoError(err)
@@ -40,12 +40,12 @@ func TestBasic(t *testing.T) {
 
 	exp2 := List{
 		ID:          43,
-		OwnerUserID: 43,
+		OwnerUserID: userID,
 	}
 	err = Create(db, exp2)
 	assert.NoError(err)
 
-	act2, err := GetByUser(db, 43)
+	act2, err := GetByUser(db, userID)
 	assert.NoError(err)
 
 	assert.Equal([]List{exp, exp2}, act2)
