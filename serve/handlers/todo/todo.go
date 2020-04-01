@@ -8,63 +8,33 @@ import (
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/todo"
-	"roci.dev/replicache-sample-todo/serve/model/user"
 	"roci.dev/replicache-sample-todo/serve/types"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
-func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
+func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) bool {
 	var input types.TodoCreateInput
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		httperr.ClientError(w, err.Error())
-		return
+		return false
 	}
 
 	if input.ID == 0 {
 		httperr.ClientError(w, "id field is required")
-		return
+		return false
 	}
 
 	if input.ListID == 0 {
 		httperr.ClientError(w, "listID field is required")
-		return
-	}
-
-	_, err = db.Transact(func() (commit bool) {
-		if !ensureUser(w, r, db, userID) {
-			return false
-		}
-		if !ensureList(w, r, db, input.ListID, userID) {
-			return false
-		}
-		if !ensureTodo(w, r, db, input) {
-			return false
-		}
-		return true
-	})
-
-	if err != nil {
-		httperr.ServerError(w, err.Error())
-		return
-	}
-
-	return
-}
-
-func ensureUser(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) bool {
-	has, err := user.Has(db, userID)
-	if err != nil {
-		httperr.ServerError(w, err.Error())
 		return false
 	}
 
-	if !has {
-		err := user.Create(db, userID)
-		if err != nil {
-			httperr.ServerError(w, err.Error())
-			return false
-		}
+	if !ensureList(w, r, db, input.ListID, userID) {
+		return false
+	}
+	if !ensureTodo(w, r, db, input) {
+		return false
 	}
 
 	return true

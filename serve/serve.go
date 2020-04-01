@@ -9,6 +9,7 @@ import (
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/handlers/clientview"
 	"roci.dev/replicache-sample-todo/serve/handlers/todo"
+	userhandler "roci.dev/replicache-sample-todo/serve/handlers/user"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
@@ -29,11 +30,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	db := db.New()
 
-	userID := authenticate(w, r)
-	if userID == 0 {
-		return
-	}
-
 	err = schema.Create(db, name)
 	if err != nil {
 		httperr.ServerError(w, err.Error())
@@ -42,17 +38,35 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	db.Use(name)
 
-	switch r.URL.Path {
-	case "/serve/todo-create":
-		todo.Handle(w, r, db, userID)
-	case "/serve/client-view":
-		clientview.Handle(w, r, db, userID)
-	default:
-		httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
+	_, err = db.Transact(func() bool {
+		switch r.URL.Path {
+		case "/serve/login":
+			return userhandler.Login(w, r, db)
+		}
+
+		userID := authenticate(db, w, r)
+		if userID == 0 {
+			return false
+		}
+
+		switch r.URL.Path {
+		case "/serve/todo-create":
+			return todo.Handle(w, r, db, userID)
+		case "/serve/client-view":
+			return clientview.Handle(w, r, db, userID)
+		default:
+			httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
+			return false
+		}
+	})
+
+	if err != nil {
+		httperr.ServerError(w, err.Error())
+		return
 	}
 }
 
-func authenticate(w http.ResponseWriter, r *http.Request) (userID int) {
+func authenticate(db *db.DB, w http.ResponseWriter, r *http.Request) (userID int) {
 	s := r.Header.Get("Authorization")
 	if s == "" {
 		w.WriteHeader(http.StatusUnauthorized)

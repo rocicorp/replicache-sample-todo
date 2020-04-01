@@ -14,3 +14,11 @@ type TodoList struct {
 }
 
 type TodoCreateInput Todo
+
+type LoginInput struct {
+	Email string `json:"email"`
+}
+
+type LoginOutput struct {
+	Id int `json:"id"`
+}

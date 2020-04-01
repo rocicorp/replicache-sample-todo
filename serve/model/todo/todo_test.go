@@ -19,12 +19,12 @@ func TestBasic(t *testing.T) {
 	assert.NoError(err)
 	db.Use("test")
 
-	err = user.Create(db, 42)
+	userID, err := user.Create(db, "foo@foo.com")
 	assert.NoError(err)
 
 	err = list.Create(db, list.List{
 		ID:          43,
-		OwnerUserID: 42,
+		OwnerUserID: userID,
 	})
 	assert.NoError(err)
 
