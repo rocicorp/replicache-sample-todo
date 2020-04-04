@@ -11,6 +11,7 @@ import (
 	"roci.dev/replicache-sample-todo/serve/handlers/todo"
 	userhandler "roci.dev/replicache-sample-todo/serve/handlers/user"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
+	"roci.dev/replicache-sample-todo/serve/model/user"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
@@ -79,6 +80,14 @@ func authenticate(db *db.DB, w http.ResponseWriter, r *http.Request) (userID int
 		w.Write([]byte("Bad Authorization header"))
 		return 0
 	}
+
+	ok, err := user.Has(db, userID)
+	if err != nil || !ok {
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte("Authentication failed"))
+		return 0
+	}
+
 	return userID
 }
 
