@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 
 	servetypes "roci.dev/diff-server/serve/types"
 	"roci.dev/replicache-sample-todo/serve/db"
@@ -27,7 +26,7 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) bool 
 	}
 	out := servetypes.ClientViewResponse{
 		ClientView:     map[string]interface{}{},
-		LastMutationID: uint64(time.Now().Unix()), // TODO actually return real mutation IDs
+		LastMutationID: 0,
 	}
 	for _, l := range lists {
 		out.ClientView[fmt.Sprintf("/list/%d", l.ID)] = types.TodoList(l)
