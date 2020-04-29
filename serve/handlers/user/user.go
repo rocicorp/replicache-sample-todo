@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"roci.dev/replicache-sample-todo/serve/db"
+	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/user"
 	"roci.dev/replicache-sample-todo/serve/types"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
@@ -31,6 +32,20 @@ func Login(w http.ResponseWriter, r *http.Request, db *db.DB) bool {
 
 	if id == 0 {
 		id, err = user.Create(db, input.Email)
+		if err != nil {
+			httperr.ServerError(w, err.Error())
+			return false
+		}
+		listID, err := list.GetMax(db)
+		if err != nil {
+			httperr.ServerError(w, err.Error())
+			return false
+		}
+		listID++
+		err = list.Create(db, list.List{
+			ID:          listID,
+			OwnerUserID: id,
+		})
 		if err != nil {
 			httperr.ServerError(w, err.Error())
 			return false

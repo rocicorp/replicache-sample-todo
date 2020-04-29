@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"roci.dev/replicache-sample-todo/serve/db"
+	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
 )
 
@@ -29,24 +30,44 @@ func TestLogin(t *testing.T) {
 		request      string
 		wantReturn   bool
 		wantCode     int
+		wantUserID   int
 		wantResponse string
+		wantNewList  bool
 	}{
-		{``, false, http.StatusBadRequest, "EOF"},
-		{`{}`, false, http.StatusBadRequest, "email field is required"},
-		{`{"email":"foo@foo.com"}`, true, http.StatusOK, `{"id":1}` + "\n"},
-		{`{"email":"foo@bar.com"}`, true, http.StatusOK, `{"id":2}` + "\n"},
-		{`{"email":"foo@foo.com"}`, true, http.StatusOK, `{"id":1}` + "\n"},
+		{``, false, http.StatusBadRequest, 0, "EOF", false},
+		{`{}`, false, http.StatusBadRequest, 0, "email field is required", false},
+		{`{"email":"foo@foo.com"}`, true, http.StatusOK, 1, "", true},
+		{`{"email":"foo@bar.com"}`, true, http.StatusOK, 2, "", true},
+		{`{"email":"foo@foo.com"}`, true, http.StatusOK, 1, "", false},
 	}
 
 	for i, t := range tc {
 		msg := fmt.Sprintf("test case %d", i)
 		w := httptest.NewRecorder()
+		prevMax, err := list.GetMax(db)
+		assert.NoError(err)
 		ret := Login(w, httptest.NewRequest("POST", "/serve/login", strings.NewReader(t.request)), db)
 		assert.Equal(t.wantReturn, ret, msg)
 		assert.Equal(t.wantCode, w.Result().StatusCode)
 		body := &bytes.Buffer{}
-		_, err := io.Copy(body, w.Result().Body)
+		_, err = io.Copy(body, w.Result().Body)
 		assert.NoError(err)
-		assert.Equal(t.wantResponse, string(body.Bytes()))
+		if t.wantUserID > 0 {
+			assert.Equal(fmt.Sprintf(`{"id":%d}`, t.wantUserID)+"\n", string(body.Bytes()))
+		}
+		if t.wantResponse != "" {
+			assert.Equal(t.wantResponse, string(body.Bytes()))
+		}
+		currentMax, err := list.GetMax(db)
+		assert.NoError(err, msg)
+		if t.wantNewList {
+			assert.Equal(prevMax+1, currentMax, msg)
+			newList, has, err := list.Get(db, currentMax)
+			assert.NoError(err, msg)
+			assert.True(has, msg)
+			assert.Equal(t.wantUserID, newList.OwnerUserID)
+		} else {
+			assert.Equal(prevMax, currentMax)
+		}
 	}
 }

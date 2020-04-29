@@ -37,6 +37,17 @@ func GetByUser(d *db.DB, userID int) (r []List, err error) {
 	return r, nil
 }
 
+func GetMax(d *db.DB) (int, error) {
+	out, err := d.Exec("SELECT Max(Id) FROM TodoList", db.Params{})
+	if err != nil {
+		return 0, err
+	}
+	if out.Records[0][0].IsNull != nil {
+		return 0, nil
+	}
+	return int(*out.Records[0][0].LongValue), nil
+}
+
 func Create(d *db.DB, list List) error {
 	_, err := d.Exec("INSERT INTO TodoList (Id, OwnerUserId) VALUES (:id, :owner)", db.Params{"id": list.ID, "owner": list.OwnerUserID})
 	return err

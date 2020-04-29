@@ -26,12 +26,20 @@ func TestBasic(t *testing.T) {
 	assert.False(has)
 	assert.Equal(List{}, act)
 
+	max, err := GetMax(db)
+	assert.NoError(err)
+	assert.Equal(0, max)
+
 	exp := List{
 		ID:          42,
 		OwnerUserID: userID,
 	}
 	err = Create(db, exp)
 	assert.NoError(err)
+
+	max, err = GetMax(db)
+	assert.NoError(err)
+	assert.Equal(42, max)
 
 	act, has, err = Get(db, 42)
 	assert.NoError(err)
