@@ -9,6 +9,7 @@ import (
 	"roci.dev/replicache-sample-todo/serve/db"
 )
 
+// Create drops the specified database if it exists, and re-creates its with the correct schema and no data.
 func Create(db *db.DB, name string) (err error) {
 	statements := []string{
 		fmt.Sprintf("DROP DATABASE IF EXISTS %s", name),
@@ -17,6 +18,7 @@ func Create(db *db.DB, name string) (err error) {
 		fmt.Sprintf("CREATE TABLE %s.User (Id INT PRIMARY KEY AUTO_INCREMENT NOT NULL, Email VARCHAR(255) NOT NULL UNIQUE)", name),
 		fmt.Sprintf("CREATE TABLE %s.TodoList (Id INT PRIMARY KEY NOT NULL, OwnerUserId INT NOT NULL, FOREIGN KEY (OwnerUserId) REFERENCES %s.User (Id))", name, name),
 		fmt.Sprintf("CREATE TABLE %s.Todo (Id INT PRIMARY KEY NOT NULL, TodoListId INT NOT NULL, Title VARCHAR(255) NOT NULL, Complete BIT NOT NULL, SortOrder FLOAT(53) NOT NULL, FOREIGN KEY (TodoListId) REFERENCES %s.TodoList (Id))", name, name),
+		fmt.Sprintf("CREATE TABLE %s.Replicache (ClientID VARCHAR(255) PRIMARY KEY NOT NULL, MutationID INT NOT NULL)", name),
 	}
 
 	schemaHash := sha1.Sum([]byte(strings.Join(statements, "\n")))
