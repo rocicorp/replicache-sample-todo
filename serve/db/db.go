@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rdsdataservice"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -46,7 +45,7 @@ func (db *DB) Use(dbName string) {
 	db.name = dbName
 }
 
-// Transact() executes the provided function inside an atomic transaction.
+// Transact executes a function inside an atomic transaction.
 //
 // If the function returns true, the transaction is committed.
 // If the function returns false, the transaction is aborted.
@@ -60,7 +59,7 @@ func (db *DB) Use(dbName string) {
 func (db *DB) Transact(f func() (commit bool)) (bool, error) {
 	_, err := db.Exec("BEGIN", nil)
 	if err != nil {
-		return false, errors.Wrap(err, "Could not BEGIN")
+		return false, fmt.Errorf("could not BEGIN: %w", err)
 	}
 	defer func() {
 		r := recover()
@@ -70,7 +69,7 @@ func (db *DB) Transact(f func() (commit bool)) (bool, error) {
 		log.Printf("caught panic: %#v", r)
 		_, err = db.Exec("ROLLBACK", nil)
 		if err != nil {
-			log.Printf("ERROR: Could not rollback transaction: %s", err.Error())
+			log.Printf("ERROR: Could not rollback transaction: %v", err)
 		}
 		panic(r)
 	}()
@@ -80,14 +79,14 @@ func (db *DB) Transact(f func() (commit bool)) (bool, error) {
 	if !ok {
 		_, err = db.Exec("ROLLBACK", nil)
 		if err != nil {
-			return false, errors.Wrap(err, "Could not ROLLBACK")
+			return false, fmt.Errorf("could not ROLLBACK: %w", err)
 		}
 		return false, nil
 	}
 
 	_, err = db.Exec("COMMIT", nil)
 	if err != nil {
-		return false, errors.Wrap(err, "Could not COMMIT")
+		return false, fmt.Errorf("could not COMMIT: %w", err)
 	}
 	return true, nil
 }

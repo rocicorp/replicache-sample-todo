@@ -54,12 +54,11 @@ func TestClientView(t *testing.T) {
 	for i, t := range tc {
 		msg := fmt.Sprintf("test case %d", i)
 		w := httptest.NewRecorder()
-		ret := Handle(w, httptest.NewRequest("POST", "/serve/clientview", nil), db, t.userID)
-		assert.Equal(t.wantReturn, ret, msg)
-		assert.Equal(t.wantCode, w.Result().StatusCode)
+		Handle(w, httptest.NewRequest("POST", "/serve/clientview", nil), db, t.userID)
+		assert.Equal(t.wantCode, w.Result().StatusCode, msg)
 		body := &bytes.Buffer{}
 		_, err := io.Copy(body, w.Result().Body)
-		assert.NoError(err)
-		assert.Regexp(t.wantResponse, string(body.Bytes()))
+		assert.NoError(err, msg)
+		assert.Regexp(t.wantResponse, string(body.Bytes()), msg)
 	}
 }

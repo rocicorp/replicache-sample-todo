@@ -12,32 +12,37 @@ import (
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
-func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) bool {
+func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 	var input types.TodoCreateInput
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		httperr.ClientError(w, err.Error())
-		return false
+		return
 	}
 
 	if input.ID == 0 {
 		httperr.ClientError(w, "id field is required")
-		return false
+		return
 	}
 
 	if input.ListID == 0 {
 		httperr.ClientError(w, "listID field is required")
-		return false
+		return
 	}
 
-	if !ensureList(w, r, db, input.ListID, userID) {
-		return false
-	}
-	if !ensureTodo(w, r, db, input) {
-		return false
-	}
+	_, err = db.Transact(func() bool {
+		if !ensureList(w, r, db, input.ListID, userID) {
+			return false
+		}
+		if !ensureTodo(w, r, db, input) {
+			return false
+		}
+		return true
+	})
 
-	return true
+	if err != nil {
+		httperr.ServerError(w, err.Error())
+	}
 }
 
 func ensureList(w http.ResponseWriter, r *http.Request, db *db.DB, listID int, ownerUserID int) bool {

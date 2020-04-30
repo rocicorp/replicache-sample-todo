@@ -28,17 +28,16 @@ func TestLogin(t *testing.T) {
 
 	tc := []struct {
 		request      string
-		wantReturn   bool
 		wantCode     int
 		wantUserID   int
 		wantResponse string
 		wantNewList  bool
 	}{
-		{``, false, http.StatusBadRequest, 0, "EOF", false},
-		{`{}`, false, http.StatusBadRequest, 0, "email field is required", false},
-		{`{"email":"foo@foo.com"}`, true, http.StatusOK, 1, "", true},
-		{`{"email":"foo@bar.com"}`, true, http.StatusOK, 2, "", true},
-		{`{"email":"foo@foo.com"}`, true, http.StatusOK, 1, "", false},
+		{``, http.StatusBadRequest, 0, "EOF", false},
+		{`{}`, http.StatusBadRequest, 0, "email field is required", false},
+		{`{"email":"foo@foo.com"}`, http.StatusOK, 1, "", true},
+		{`{"email":"foo@bar.com"}`, http.StatusOK, 2, "", true},
+		{`{"email":"foo@foo.com"}`, http.StatusOK, 1, "", false},
 	}
 
 	for i, t := range tc {
@@ -46,8 +45,7 @@ func TestLogin(t *testing.T) {
 		w := httptest.NewRecorder()
 		prevMax, err := list.GetMax(db)
 		assert.NoError(err)
-		ret := Login(w, httptest.NewRequest("POST", "/serve/login", strings.NewReader(t.request)), db)
-		assert.Equal(t.wantReturn, ret, msg)
+		Login(w, httptest.NewRequest("POST", "/serve/login", strings.NewReader(t.request)), db)
 		assert.Equal(t.wantCode, w.Result().StatusCode)
 		body := &bytes.Buffer{}
 		_, err = io.Copy(body, w.Result().Body)

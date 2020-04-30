@@ -35,19 +35,17 @@ func TestTransact(t *testing.T) {
 		ret           bool   // return value of user function
 		panic         bool   // whether user function panics
 		failBegin     bool   // whether opening the tx fails
-		failCommit    bool   // whether committing the tx fails
-		failRollback  bool   // whether rolling back the tx fails
 		expectedRet   bool   // expected return from Transact()
 		expectedError string // expected error from Transact()
 		expectedPanic bool   // whether Transact() expected to panic
 		expectedVal   int    // expected count in DB after Transact() returns
+		// TODO: test COMMIT and ROLLBACK failing
+		// Probably need to mock out RDS to do this well
 	}{
-		{false, false, false, false, false, false, "", false, 0},
-		{true, false, false, false, false, true, "", false, 1},
-		{false, true, false, false, false, false, "", true, 1},
-		{false, false, true, false, false, false, "Could not BEGIN: BadRequestException: Unknown database 'nonexistant'", false, 1},
-		{true, false, false, true, false, false, "Could not COMMIT: BadRequestException: Unknown database 'nonexistant'", false, 2},
-		{false, false, false, false, true, false, "Could not ROLLBACK: BadRequestException: Unknown database 'nonexistant'", false, 2},
+		{false, false, false, false, "", false, 0},
+		{true, false, false, true, "", false, 1},
+		{false, true, false, false, "", true, 1},
+		{false, false, true, false, "could not BEGIN: BadRequestException: Unknown database 'nonexistant'", false, 1},
 	}
 
 	for i, t := range tc {
@@ -65,9 +63,6 @@ func TestTransact(t *testing.T) {
 			ret, err = db.Transact(func() (commit bool) {
 				_, err := db.Exec("UPDATE Foo SET Count = Count + 1 WHERE Id = 1", nil)
 				assert.NoError(err, msg)
-				if t.failCommit || t.failRollback {
-					db.Use("nonexistant")
-				}
 				if t.panic {
 					panic("bonk")
 				}
@@ -94,10 +89,5 @@ func TestTransact(t *testing.T) {
 		assert.NoError(err, msg)
 		assert.Equal(1, len(out.Records), msg)
 		assert.Equal(int64(t.expectedVal), *out.Records[0][0].LongValue, msg)
-
-		if t.failCommit || t.failRollback {
-			_, err = db.Exec("ROLLBACK", nil)
-			assert.NoError(err)
-		}
 	}
 }

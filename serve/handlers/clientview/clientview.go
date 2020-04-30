@@ -13,16 +13,26 @@ import (
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
-func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) bool {
-	lists, err := list.GetByUser(db, userID)
+func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
+	var lists []list.List
+	var todos []todo.Todo
+	_, err := db.Transact(func() bool {
+		var err error
+		lists, err = list.GetByUser(db, userID)
+		if err != nil {
+			httperr.ServerError(w, err.Error())
+			return false
+		}
+		todos, err = todo.GetByUser(db, userID)
+		if err != nil {
+			httperr.ServerError(w, err.Error())
+			return false
+		}
+		return true
+	})
 	if err != nil {
 		httperr.ServerError(w, err.Error())
-		return false
-	}
-	todos, err := todo.GetByUser(db, userID)
-	if err != nil {
-		httperr.ServerError(w, err.Error())
-		return false
+		return
 	}
 	out := servetypes.ClientViewResponse{
 		ClientView:     map[string]interface{}{},
@@ -37,7 +47,6 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) bool 
 	err = json.NewEncoder(w).Encode(out)
 	if err != nil {
 		httperr.ServerError(w, err.Error())
-		return false
+		return
 	}
-	return true
 }

@@ -39,31 +39,29 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	db.Use(name)
 
-	_, err = db.Transact(func() bool {
-		switch r.URL.Path {
-		case "/serve/login":
-			return userhandler.Login(w, r, db)
-		}
+	switch r.URL.Path {
+	case "/serve/login":
+		userhandler.Login(w, r, db)
+		return
+	}
 
-		userID := authenticate(db, w, r)
-		if userID == 0 {
-			return false
-		}
+	userID := authenticate(db, w, r)
+	if userID == 0 {
+		return
+	}
 
-		switch r.URL.Path {
-		case "/serve/todo-create":
-			return todo.Handle(w, r, db, userID)
-		case "/serve/client-view":
-			return clientview.Handle(w, r, db, userID)
-		default:
-			httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
-			return false
-		}
-	})
+	switch r.URL.Path {
+	case "/serve/todo-create":
+		todo.Handle(w, r, db, userID)
+	case "/serve/client-view":
+		clientview.Handle(w, r, db, userID)
+	default:
+		httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
+		return
+	}
 
 	if err != nil {
 		httperr.ServerError(w, err.Error())
-		return
 	}
 }
 

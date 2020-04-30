@@ -32,28 +32,26 @@ func TestClientView(t *testing.T) {
 	tc := []struct {
 		userID       int
 		request      string
-		wantReturn   bool
 		wantCode     int
 		wantResponse string
 	}{
-		{userID, ``, false, http.StatusBadRequest, `EOF`},
-		{userID, `notjson`, false, http.StatusBadRequest, `invalid character`},
-		{userID, `{}`, false, http.StatusBadRequest, `id field is required`},
-		{userID, `{"id":1}`, false, http.StatusBadRequest, `listID field is required`},
-		{userID, `{"id":1,"listID":2}`, true, http.StatusOK, ``},
-		{userID, `{"id":1,"listID":2}`, false, http.StatusBadRequest, `Specified todo already exists`},
-		{7, `{"id":1,"listID":2}`, false, http.StatusUnauthorized, `Cannot access specified list`},
+		{userID, ``, http.StatusBadRequest, `EOF`},
+		{userID, `notjson`, http.StatusBadRequest, `invalid character`},
+		{userID, `{}`, http.StatusBadRequest, `id field is required`},
+		{userID, `{"id":1}`, http.StatusBadRequest, `listID field is required`},
+		{userID, `{"id":1,"listID":2}`, http.StatusOK, ``},
+		{userID, `{"id":1,"listID":2}`, http.StatusBadRequest, `Specified todo already exists`},
+		{7, `{"id":1,"listID":2}`, http.StatusUnauthorized, `Cannot access specified list`},
 	}
 
 	for i, t := range tc {
 		msg := fmt.Sprintf("test case %d", i)
 		w := httptest.NewRecorder()
-		ret := Handle(w, httptest.NewRequest("POST", "/serve/todo", strings.NewReader(t.request)), db, t.userID)
-		assert.Equal(t.wantReturn, ret, msg)
-		assert.Equal(t.wantCode, w.Result().StatusCode)
+		Handle(w, httptest.NewRequest("POST", "/serve/todo", strings.NewReader(t.request)), db, t.userID)
+		assert.Equal(t.wantCode, w.Result().StatusCode, msg)
 		body := &bytes.Buffer{}
 		_, err := io.Copy(body, w.Result().Body)
-		assert.NoError(err)
-		assert.Regexp(t.wantResponse, string(body.Bytes()))
+		assert.NoError(err, msg)
+		assert.Regexp(t.wantResponse, string(body.Bytes()), msg)
 	}
 }
