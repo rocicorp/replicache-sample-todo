@@ -45,4 +45,12 @@ func TestBasic(t *testing.T) {
 	has, err = Has(db, 44)
 	assert.NoError(err)
 	assert.True(has)
+
+	err = MarkComplete(db, 44, false)
+	assert.NoError(err)
+	exp.Complete = false
+	act, has, err := Get(db, 44, userID)
+	assert.NoError(err)
+	assert.True(has)
+	assert.Equal(exp, act)
 }

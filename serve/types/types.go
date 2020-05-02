@@ -15,6 +15,11 @@ type TodoList struct {
 
 type TodoCreateInput Todo
 
+type TodoMarkComplete struct {
+	ID       int  `json:"id"`
+	Complete bool `json:"complete"`
+}
+
 type LoginInput struct {
 	Email string `json:"email"`
 }
