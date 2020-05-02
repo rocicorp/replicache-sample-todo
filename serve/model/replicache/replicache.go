@@ -22,7 +22,7 @@ func GetMutationID(d *db.DB, clientID string) (int64, error) {
 		return int64(0), fmt.Errorf("unexpected number of MutationID records")
 	}
 
-	return int64(*output.Records[0][0].LongValue), nil
+	return *output.Records[0][0].LongValue, nil
 }
 
 // SetMutationID updates the database with the last processed clientID for a client.
