@@ -7,6 +7,10 @@ import (
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
+// Handle wraps a Replicache mutator implementation in a classic
+// REST/HTTP interface. This is just so that code can be shared in
+// this demo. There's no need to share code, or for the REST endpoint
+// impls to have anything to do with Replicache.
 func Handle(w http.ResponseWriter, mutator func() error) {
 	err := mutator()
 	switch err := err.(type) {

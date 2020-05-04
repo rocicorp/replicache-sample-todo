@@ -132,8 +132,8 @@ func processMutation(m mutation, userID int, db *db.DB) error {
 	switch m.Name {
 	case "createTodo":
 		err = todo.Create(r, db, userID)
-	case "markComplete":
-		err = todo.MarkComplete(r, db, userID)
+	case "updateTodo":
+		err = todo.Update(r, db, userID)
 	default:
 		return errs.NewBadRequestError("unknown mutation name")
 	}

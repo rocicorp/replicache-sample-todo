@@ -52,12 +52,18 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch r.URL.Path {
+	case "/serve/replicache-batch":
+		clientview.Handle(w, r, db, userID)
+	case "/serve/replicache-client-view":
+		clientview.Handle(w, r, db, userID)
 	case "/serve/todo-create":
 		mutator.Handle(w, func() error {
 			return todo.Create(r.Body, db, userID)
 		})
-	case "/serve/client-view":
-		clientview.Handle(w, r, db, userID)
+	case "/serve/todo-update":
+		mutator.Handle(w, func() error {
+			return todo.Update(r.Body, db, userID)
+		})
 	default:
 		httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
 		return

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -98,28 +99,8 @@ func (db *DB) Exec(sql string, args Params) (*rdsdataservice.ExecuteStatementOut
 
 	var params []*rdsdataservice.SqlParameter
 	if args != nil {
-		for n, v := range args {
-			f := rdsdataservice.Field{}
-			if v == nil {
-				f.SetIsNull(true)
-				continue
-			}
-			switch v := v.(type) {
-			case bool:
-				f.SetBooleanValue(v)
-			case int:
-				f.SetLongValue(int64(v))
-			case int64:
-				f.SetLongValue(v)
-			case float32:
-				f.SetDoubleValue(float64(v))
-			case float64:
-				f.SetDoubleValue(v)
-			case string:
-				f.SetStringValue(v)
-			default:
-				panic(fmt.Sprintf("Unknown argument type: %#v", v))
-			}
+		for n, arg := range args {
+			f := argToField(arg)
 			params = append(params, &rdsdataservice.SqlParameter{
 				Name:  aws.String(n),
 				Value: &f,
@@ -141,4 +122,32 @@ func (db *DB) Exec(sql string, args Params) (*rdsdataservice.ExecuteStatementOut
 		fmt.Printf("Error: %s", err)
 	}
 	return out, err
+}
+
+func argToField(arg interface{}) (f rdsdataservice.Field) {
+	rv := reflect.ValueOf(arg)
+	if rv.Kind() == reflect.Ptr {
+		if rv.IsNil() {
+			f.SetIsNull(true)
+			return f
+		}
+		arg = reflect.Indirect(rv).Interface()
+	}
+	switch arg := arg.(type) {
+	case bool:
+		f.SetBooleanValue(arg)
+	case int:
+		f.SetLongValue(int64(arg))
+	case int64:
+		f.SetLongValue(arg)
+	case float32:
+		f.SetDoubleValue(float64(arg))
+	case float64:
+		f.SetDoubleValue(arg)
+	case string:
+		f.SetStringValue(arg)
+	default:
+		panic(fmt.Sprintf("Unknown argument type: %#v", arg))
+	}
+	return f
 }

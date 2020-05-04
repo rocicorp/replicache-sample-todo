@@ -15,9 +15,11 @@ type TodoList struct {
 
 type TodoCreateInput Todo
 
-type TodoMarkComplete struct {
-	ID       int  `json:"id"`
-	Complete bool `json:"complete"`
+type TodoUpdateInput struct {
+	ID       int      `json:"id"`
+	Text     *string  `json:"text,omitempty"`
+	Complete *bool    `json:"complete,omitempty"`
+	Order    *float64 `json:"order,omitempty"`
 }
 
 type LoginInput struct {

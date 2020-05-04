@@ -11,8 +11,8 @@ import (
 	"roci.dev/replicache-sample-todo/serve/util/errs"
 )
 
-func MarkComplete(r io.Reader, db *db.DB, userID int) error {
-	var input types.TodoMarkComplete
+func Update(r io.Reader, db *db.DB, userID int) error {
+	var input types.TodoUpdateInput
 	err := json.NewDecoder(r).Decode(&input)
 	if err != nil {
 		return errs.NewBadRequestError(err.Error())
@@ -29,7 +29,7 @@ func MarkComplete(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewBadRequestError(fmt.Sprintf("specified todo not found: %d", input.ID))
 	}
 
-	err = todo.MarkComplete(db, input.ID, input.Complete)
+	err = todo.Update(db, input.ID, input.Complete, input.Order, input.Text)
 	if err != nil {
 		return err
 	}

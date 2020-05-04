@@ -25,12 +25,15 @@ func Create(d *db.DB, todo Todo) error {
 	return err
 }
 
-func MarkComplete(d *db.DB, id int, complete bool) error {
+func Update(d *db.DB, id int, complete *bool, order *float64, title *string) error {
 	_, err := d.Exec(
-		`UPDATE Todo SET Complete=:complete WHERE Id=:id`,
+		`UPDATE Todo SET Complete=COALESCE(:complete,Complete), SortOrder=COALESCE(:order,SortOrder), Title=COALESCE(:title,Title) WHERE Id=:id`,
 		db.Params{
 			"id":       id,
-			"complete": complete})
+			"complete": complete,
+			"order":    order,
+			"title":    title,
+		})
 	return err
 }
 
