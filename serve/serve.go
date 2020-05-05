@@ -12,6 +12,7 @@ import (
 	userhandler "roci.dev/replicache-sample-todo/serve/handlers/user"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
 	"roci.dev/replicache-sample-todo/serve/model/user"
+	"roci.dev/replicache-sample-todo/serve/mutators/list"
 	"roci.dev/replicache-sample-todo/serve/mutators/todo"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
@@ -56,6 +57,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		clientview.Handle(w, r, db, userID)
 	case "/serve/replicache-client-view":
 		clientview.Handle(w, r, db, userID)
+	case "/serve/list-create":
+		mutator.Handle(w, func() error {
+			return list.Create(r.Body, db, userID)
+		})
 	case "/serve/todo-create":
 		mutator.Handle(w, func() error {
 			return todo.Create(r.Body, db, userID)

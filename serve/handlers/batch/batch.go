@@ -10,6 +10,7 @@ import (
 
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/model/replicache"
+	"roci.dev/replicache-sample-todo/serve/mutators/list"
 	"roci.dev/replicache-sample-todo/serve/mutators/todo"
 	"roci.dev/replicache-sample-todo/serve/util/errs"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
@@ -130,6 +131,8 @@ func processMutation(m mutation, userID int, db *db.DB) error {
 	r := bytes.NewReader(m.Args)
 	var err error
 	switch m.Name {
+	case "createList":
+		err = list.Create(r, db, userID)
 	case "createTodo":
 		err = todo.Create(r, db, userID)
 	case "updateTodo":
