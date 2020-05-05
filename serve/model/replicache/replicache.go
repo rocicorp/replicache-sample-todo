@@ -28,6 +28,9 @@ func GetMutationID(d *db.DB, clientID string) (int64, error) {
 // SetMutationID updates the database with the last processed clientID for a client.
 func SetMutationID(d *db.DB, clientID string, mutationID int64) error {
 	last, err := GetMutationID(d, clientID)
+	if err != nil {
+		return err
+	}
 	expected := last + 1
 	if mutationID != expected {
 		return fmt.Errorf("unexpected new MutationID. Expected %d, got %d", expected, mutationID)
