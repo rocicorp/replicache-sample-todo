@@ -13,6 +13,10 @@ import (
 // impls to have anything to do with Replicache.
 func Handle(w http.ResponseWriter, mutator func() error) {
 	err := mutator()
+	if err == nil {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	switch err := err.(type) {
 	case errs.BadRequestError:
 		httperr.ClientError(w, err.Error())
