@@ -55,25 +55,28 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 
 	infos := []mutationInfo{}
 	stop := false
+	var internalError error
 	for _, m := range req.Mutations {
 		var err error
 		_, txErr := db.Transact(func() bool {
 			var currentMutationID, expectedMutationID int64
 
-			currentMutationID, err = replicache.GetMutationID(db, req.ClientID)
-			if err != nil {
+			currentMutationID, internalError = replicache.GetMutationID(db, req.ClientID)
+			if internalError != nil {
+				stop = true
 				return false
 			}
 
 			expectedMutationID = currentMutationID + 1
-			if m.ID < expectedMutationID {
-				err = errs.NewIdempotencyError(errors.New("mutation has already been processed"))
-				return false
-			}
 
 			if m.ID > expectedMutationID {
 				err = errs.NewSequenceError(fmt.Errorf("mutation id is too high - next expected mutation is: %d", expectedMutationID))
 				stop = true
+				return false
+			}
+
+			if m.ID < expectedMutationID {
+				err = errs.NewIdempotencyError(errors.New("mutation has already been processed"))
 				return false
 			}
 
@@ -86,13 +89,20 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 			}
 
 			// No error or permanent error - mark mutation as processed
-			smErr := replicache.SetMutationID(db, req.ClientID, m.ID)
-			if smErr != nil {
-				log.Printf("ERROR: Could not SetMutationID: %v", smErr)
+			internalError = replicache.SetMutationID(db, req.ClientID, m.ID)
+			if internalError != nil {
+				stop = true
 				return false
 			}
 			return true
 		})
+
+		if internalError != nil || txErr != nil {
+			httperr.ServerError(w,
+				fmt.Sprintf("ERROR finalizing batch endpoint - original err: %v, internalError: %v, txErr: %v",
+					err, internalError, txErr))
+			return
+		}
 
 		if err != nil {
 			log.Printf("ERROR for mutation %d: %v", m.ID, err)
@@ -104,10 +114,6 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 				ID:    m.ID,
 				Error: msg,
 			})
-		}
-
-		if txErr != nil {
-			log.Printf("ERROR committing transaction for mutation %d: %v", m.ID, txErr)
 		}
 
 		if stop {
