@@ -10,7 +10,7 @@ import (
 )
 
 type Input struct {
-	ID int `noms:"id"`
+	ID int `json:"id"`
 }
 
 func Delete(r io.Reader, db *db.DB, userID int) error {
