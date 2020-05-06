@@ -90,12 +90,12 @@ func TestUpdate(t *testing.T) {
 		{
 			label:   "unauth-todo",
 			req:     `{"id":2}`,
-			wantErr: errs.NewBadRequestError(`specified todo not found: 2`),
+			wantErr: errs.NewUnauthorizedError(`access unauthorized`),
 		},
 		{
 			label:   "unknown-todo",
 			req:     `{"id":3}`,
-			wantErr: errs.NewBadRequestError(`specified todo not found: 3`),
+			wantErr: errs.NewBadRequestError(`specified todo not found`),
 		},
 		{
 			label:        "no-change",
@@ -172,7 +172,7 @@ func TestUpdate(t *testing.T) {
 			continue
 		}
 
-		got, has, err := todo.Get(db, 1, 1)
+		got, has, err := todo.Get(db, 1)
 		assert.NoError(err, t.label)
 		assert.True(has, t.label)
 		assert.Equal(t.wantComplete, got.Complete, t.label)
@@ -180,8 +180,12 @@ func TestUpdate(t *testing.T) {
 		assert.Equal(t.wantText, got.Text, t.label)
 	}
 
-	got, has, err := todo.Get(db, 2, 2)
+	got, has, err := todo.Get(db, 2)
 	assert.NoError(err)
 	assert.True(has)
-	assert.Equal(tt2, got)
+	want := todo.OwnedTodo{
+		Todo:        tt2,
+		OwnerUserID: 2,
+	}
+	assert.Equal(want, got)
 }

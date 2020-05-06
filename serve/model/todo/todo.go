@@ -12,6 +12,11 @@ type Todo struct {
 	Order    float64 `json:"order"`
 }
 
+type OwnedTodo struct {
+	Todo
+	OwnerUserID int `json:"ownerUserID"`
+}
+
 func Create(d *db.DB, todo Todo) error {
 	_, err := d.Exec(
 		`INSERT INTO Todo (Id, TodoListId, Title, Complete, SortOrder)
@@ -45,22 +50,25 @@ func Has(d *db.DB, id int) (bool, error) {
 	return len(output.Records) == 1, nil
 }
 
-func Get(d *db.DB, id int, ownerUserID int) (t Todo, ok bool, err error) {
-	output, err := d.Exec("SELECT t.Id, t.TodoListId, t.Title, t.Complete, t.SortOrder FROM Todo t, TodoList l WHERE t.TodoListId = l.Id AND t.Id = :id AND l.OwnerUserId = :owneruserid",
-		db.Params{"id": id, "owneruserid": ownerUserID})
+func Get(d *db.DB, id int) (t OwnedTodo, ok bool, err error) {
+	output, err := d.Exec("SELECT t.Id, t.TodoListId, t.Title, t.Complete, t.SortOrder, l.OwnerUserID FROM Todo t, TodoList l WHERE t.TodoListId = l.Id AND t.Id = :id",
+		db.Params{"id": id})
 	if err != nil {
-		return Todo{}, false, err
+		return OwnedTodo{}, false, err
 	}
 	if len(output.Records) == 0 {
-		return Todo{}, false, nil
+		return OwnedTodo{}, false, nil
 	}
 
-	return Todo{
-		ID:       int(*output.Records[0][0].LongValue),
-		ListID:   int(*output.Records[0][1].LongValue),
-		Text:     *output.Records[0][2].StringValue,
-		Complete: *output.Records[0][3].BooleanValue,
-		Order:    *output.Records[0][4].DoubleValue,
+	return OwnedTodo{
+		Todo: Todo{
+			ID:       int(*output.Records[0][0].LongValue),
+			ListID:   int(*output.Records[0][1].LongValue),
+			Text:     *output.Records[0][2].StringValue,
+			Complete: *output.Records[0][3].BooleanValue,
+			Order:    *output.Records[0][4].DoubleValue,
+		},
+		OwnerUserID: int(*output.Records[0][5].LongValue),
 	}, true, nil
 }
 

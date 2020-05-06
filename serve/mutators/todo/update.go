@@ -2,7 +2,6 @@ package todo
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 
 	"roci.dev/replicache-sample-todo/serve/db"
@@ -27,12 +26,16 @@ func Update(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewBadRequestError("id field is required")
 	}
 
-	_, has, err := todo.Get(db, input.ID, userID)
+	got, has, err := todo.Get(db, input.ID)
 	if err != nil {
 		return err
 	}
 	if !has {
-		return errs.NewBadRequestError(fmt.Sprintf("specified todo not found: %d", input.ID))
+		return errs.NewBadRequestError("specified todo not found")
+	}
+
+	if got.OwnerUserID != userID {
+		return errs.NewUnauthorizedError("access unauthorized")
 	}
 
 	err = todo.Update(db, input.ID, input.Complete, input.Order, input.Text)

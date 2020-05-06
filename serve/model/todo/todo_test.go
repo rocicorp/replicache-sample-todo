@@ -96,7 +96,10 @@ func TestUpdate(t *testing.T) {
 		return &v
 	}
 
-	exp := t1
+	exp := OwnedTodo{
+		Todo:        t1,
+		OwnerUserID: 1,
+	}
 	tc := []struct {
 		complete *bool
 		order    *float64
@@ -125,7 +128,7 @@ func TestUpdate(t *testing.T) {
 		err := Update(db, 1, t.complete, t.order, t.text)
 		assert.NoError(err, msg)
 
-		act, has, err := Get(db, 1, 1)
+		act, has, err := Get(db, 1)
 		assert.NoError(err, msg)
 		assert.True(has, msg)
 		assert.Equal(exp, act)
