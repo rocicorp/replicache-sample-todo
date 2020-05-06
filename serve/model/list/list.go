@@ -5,8 +5,8 @@ import (
 )
 
 type List struct {
-	ID          int
-	OwnerUserID int
+	ID          int `json:"id"`
+	OwnerUserID int `json:"ownerUserID"`
 }
 
 func Get(d *db.DB, id int) (List, bool, error) {

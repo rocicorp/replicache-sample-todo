@@ -5,11 +5,11 @@ import (
 )
 
 type Todo struct {
-	ID       int
-	ListID   int
-	Text     string
-	Complete bool
-	Order    float64
+	ID       int     `json:"id"`
+	ListID   int     `json:"listId"`
+	Text     string  `json:"text"`
+	Complete bool    `json:"complete"`
+	Order    float64 `json:"order"`
 }
 
 func Create(d *db.DB, todo Todo) error {

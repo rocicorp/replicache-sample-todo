@@ -8,12 +8,13 @@ import (
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/todo"
-	"roci.dev/replicache-sample-todo/serve/types"
 	"roci.dev/replicache-sample-todo/serve/util/errs"
 )
 
+type CreateInput todo.Todo
+
 func Create(r io.Reader, db *db.DB, userID int) error {
-	var input types.TodoCreateInput
+	var input CreateInput
 	err := json.NewDecoder(r).Decode(&input)
 	if err != nil {
 		return errs.NewBadRequestError(err.Error())

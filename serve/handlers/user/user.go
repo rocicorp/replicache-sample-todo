@@ -7,12 +7,19 @@ import (
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/user"
-	"roci.dev/replicache-sample-todo/serve/types"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
+type LoginInput struct {
+	Email string `json:"email"`
+}
+
+type LoginOutput struct {
+	Id int `json:"id"`
+}
+
 func Login(w http.ResponseWriter, r *http.Request, db *db.DB) {
-	var input types.LoginInput
+	var input LoginInput
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		httperr.ClientError(w, err.Error())
@@ -62,7 +69,7 @@ func Login(w http.ResponseWriter, r *http.Request, db *db.DB) {
 		return
 	}
 
-	err = json.NewEncoder(w).Encode(types.LoginOutput{
+	err = json.NewEncoder(w).Encode(LoginOutput{
 		Id: id,
 	})
 	if err != nil {

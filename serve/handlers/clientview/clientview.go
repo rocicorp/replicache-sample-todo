@@ -9,7 +9,6 @@ import (
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/todo"
-	"roci.dev/replicache-sample-todo/serve/types"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
@@ -39,10 +38,10 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 		LastMutationID: 0,
 	}
 	for _, l := range lists {
-		out.ClientView[fmt.Sprintf("/list/%d", l.ID)] = types.TodoList(l)
+		out.ClientView[fmt.Sprintf("/list/%d", l.ID)] = list.List(l)
 	}
 	for _, t := range todos {
-		out.ClientView[fmt.Sprintf("/todo/%d", t.ID)] = types.Todo(t)
+		out.ClientView[fmt.Sprintf("/todo/%d", t.ID)] = todo.Todo(t)
 	}
 	err = json.NewEncoder(w).Encode(out)
 	if err != nil {
