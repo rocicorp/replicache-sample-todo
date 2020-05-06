@@ -134,3 +134,60 @@ func TestUpdate(t *testing.T) {
 		assert.Equal(exp, act)
 	}
 }
+
+func TestDelete(t *testing.T) {
+	assert := assert.New(t)
+	db := db.New()
+	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	assert.NoError(err)
+	err = schema.Create(db, "test")
+	assert.NoError(err)
+	db.Use("test")
+
+	userID, err := user.Create(db, "foo@foo.com")
+	assert.NoError(err)
+
+	err = list.Create(db, list.List{
+		ID:          1,
+		OwnerUserID: userID,
+	})
+	assert.NoError(err)
+
+	t1 := Todo{
+		ID:       1,
+		ListID:   1,
+		Text:     "text",
+		Complete: true,
+		Order:    0.1,
+	}
+	err = Create(db, t1)
+	assert.NoError(err)
+
+	t2 := Todo{
+		ID:       2,
+		ListID:   1,
+		Text:     "text",
+		Complete: true,
+		Order:    0.1,
+	}
+	err = Create(db, t2)
+	assert.NoError(err)
+
+	f := func(id int, wantT1, wantT2 bool) {
+		err := Delete(db, id)
+		assert.NoError(err)
+
+		hasT1, err := Has(db, 1)
+		assert.NoError(err)
+		hasT2, err := Has(db, 2)
+		assert.NoError(err)
+
+		assert.Equal(wantT1, hasT1)
+		assert.Equal(wantT2, hasT2)
+	}
+
+	f(3, true, true)
+	f(2, true, false)
+	f(2, true, false)
+	f(1, false, false)
+}

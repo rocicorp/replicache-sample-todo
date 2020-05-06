@@ -42,6 +42,11 @@ func Update(d *db.DB, id int, complete *bool, order *float64, title *string) err
 	return err
 }
 
+func Delete(d *db.DB, id int) error {
+	_, err := d.Exec(`DELETE FROM Todo WHERE Id = :id`, db.Params{"id": id})
+	return err
+}
+
 func Has(d *db.DB, id int) (bool, error) {
 	output, err := d.Exec("SELECT 1 FROM Todo WHERE Id = :id", db.Params{"id": id})
 	if err != nil {

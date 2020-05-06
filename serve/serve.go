@@ -69,6 +69,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		mutator.Handle(w, func() error {
 			return todo.Update(r.Body, db, userID)
 		})
+	case "/serve/todo-delete":
+		mutator.Handle(w, func() error {
+			return todo.Delete(r.Body, db, userID)
+		})
 	default:
 		httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
 		return

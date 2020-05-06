@@ -137,6 +137,8 @@ func processMutation(m mutation, userID int, db *db.DB) error {
 		err = todo.Create(r, db, userID)
 	case "updateTodo":
 		err = todo.Update(r, db, userID)
+	case "deleteTodo":
+		err = todo.Delete(r, db, userID)
 	default:
 		return errs.NewBadRequestError("unknown mutation name")
 	}

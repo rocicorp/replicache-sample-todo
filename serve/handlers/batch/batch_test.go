@@ -178,13 +178,39 @@ func TestHandle(t *testing.T) {
 		// This test is basically a smoke test that expected registered mutators are present.
 		// These mutators are tested in more detail in their directories.
 		{
-			label:          "registered-mutators",
-			req:            `{"clientID":"c1","mutations":[{"id":11,"name":"createList","args":{"id":2}},{"id":12,"name":"createTodo","args":{"id":8,"listID":2,"text":"text"}},{"id":13,"name":"updateTodo","args":{"id":8,"text":"text2"}}]}`,
+			label: "registered-mutators",
+			req: `
+{
+	"clientID":"c1",
+	"mutations":[
+		{
+			"id":11,
+			"name":"createList",
+			"args":{"id":2}
+		},
+		{
+			"id":12,
+			"name":"createTodo",
+			"args":{"id":8,"listID":2,"text":"text"}
+		},
+		{
+			"id":13,
+			"name":"updateTodo",
+			"args":{"id":8,"text":"text2"}
+		},
+		{
+			"id":14,
+			"name":"deleteTodo",
+			"args":{"id":8}
+		}
+	]
+}
+`,
 			userID:         1,
 			wantCode:       http.StatusOK,
 			wantResponse:   `{"mutationInfos":[]}` + "\n",
-			wantMutationID: 13,
-			wantNumTodos:   7,
+			wantMutationID: 14,
+			wantNumTodos:   6,
 		},
 		// todo: transient errors from db/network
 	}
