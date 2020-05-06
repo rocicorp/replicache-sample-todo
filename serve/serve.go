@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"roci.dev/replicache-sample-todo/serve/db"
+	"roci.dev/replicache-sample-todo/serve/handlers/batch"
 	"roci.dev/replicache-sample-todo/serve/handlers/clientview"
 	"roci.dev/replicache-sample-todo/serve/handlers/mutator"
 	userhandler "roci.dev/replicache-sample-todo/serve/handlers/user"
@@ -54,7 +55,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	switch r.URL.Path {
 	case "/serve/replicache-batch":
-		clientview.Handle(w, r, db, userID)
+		batch.Handle(w, r, db, userID)
 	case "/serve/replicache-client-view":
 		clientview.Handle(w, r, db, userID)
 	case "/serve/list-create":
