@@ -8,15 +8,38 @@ import (
 	servetypes "roci.dev/diff-server/serve/types"
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/model/list"
+	"roci.dev/replicache-sample-todo/serve/model/replicache"
 	"roci.dev/replicache-sample-todo/serve/model/todo"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
+type clientViewRequest struct {
+	ClientID string `json:"clientID"`
+}
+
 func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
+	var req clientViewRequest
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		httperr.ClientError(w, err.Error())
+		return
+	}
+
+	if req.ClientID == "" {
+		httperr.ClientError(w, "clientID is required")
+		return
+	}
+
 	var lists []list.List
 	var todos []todo.Todo
-	_, err := db.Transact(func() bool {
+	var lastMutationID int64
+	_, err = db.Transact(func() bool {
 		var err error
+		lastMutationID, err = replicache.GetMutationID(db, req.ClientID)
+		if err != nil {
+			httperr.ServerError(w, err.Error())
+			return false
+		}
 		lists, err = list.GetByUser(db, userID)
 		if err != nil {
 			httperr.ServerError(w, err.Error())
@@ -35,7 +58,7 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 	}
 	out := servetypes.ClientViewResponse{
 		ClientView:     map[string]interface{}{},
-		LastMutationID: 0,
+		LastMutationID: uint64(lastMutationID),
 	}
 	for _, l := range lists {
 		out.ClientView[fmt.Sprintf("/list/%d", l.ID)] = list.List(l)
