@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/handlers/batch"
@@ -15,6 +16,7 @@ import (
 	"roci.dev/replicache-sample-todo/serve/model/user"
 	"roci.dev/replicache-sample-todo/serve/mutators/list"
 	"roci.dev/replicache-sample-todo/serve/mutators/todo"
+	"roci.dev/replicache-sample-todo/serve/util/fcm"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
 )
 
@@ -42,6 +44,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	db.Use(name)
 
+	impl(w, r, db, &http.Client{Timeout: 5 * time.Second})
+}
+
+func impl(w http.ResponseWriter, r *http.Request, db *db.DB, d fcm.Doer) {
 	switch r.URL.Path {
 	case "/serve/login":
 		userhandler.Login(w, r, db)
@@ -53,34 +59,40 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dirty := false
 	switch r.URL.Path {
 	case "/serve/replicache-batch":
 		batch.Handle(w, r, db, userID)
+		dirty = true
 	case "/serve/replicache-client-view":
 		clientview.Handle(w, r, db, userID)
 	case "/serve/list-create":
 		mutator.Handle(w, func() error {
 			return list.Create(r.Body, db, userID)
 		})
+		dirty = true
 	case "/serve/todo-create":
 		mutator.Handle(w, func() error {
 			return todo.Create(r.Body, db, userID)
 		})
+		dirty = true
 	case "/serve/todo-update":
 		mutator.Handle(w, func() error {
 			return todo.Update(r.Body, db, userID)
 		})
+		dirty = true
 	case "/serve/todo-delete":
 		mutator.Handle(w, func() error {
 			return todo.Delete(r.Body, db, userID)
 		})
+		dirty = true
 	default:
 		httperr.ClientError(w, fmt.Sprintf("Unknown path: %s", r.URL.Path))
 		return
 	}
 
-	if err != nil {
-		httperr.ServerError(w, err.Error())
+	if dirty {
+		fcm.Poke(userID, d)
 	}
 }
 
