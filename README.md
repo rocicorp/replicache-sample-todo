@@ -18,7 +18,9 @@ Persistence is against AWS Aurora (MySQL flavor).
     REPLICANT_AWS_ACCESS_KEY_ID=<access key from .aws/credentials>
     REPLICANT_AWS_SECRET_ACCESS_KEY=<secret access key from .aws/credentials>
     REPLICANT_SAMPLE_TODO_ENV=dev_<your Rocicorp username>
+    FCM_SERVER_KEY=<Firebase Cloud Messaging Server Key>
     ```
+    For Rocicorp's internal values, see "passwords" in Google Drive.
 1. Run unit tests with no parallelism ` go test -p 1 ./...`. Note: tests depend on RDS and are therefore flaky.
 1. Run `now dev`
 
