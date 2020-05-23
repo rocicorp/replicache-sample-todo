@@ -14,7 +14,7 @@ type ListCreateInput struct {
 	ID int `json:"id"`
 }
 
-func Create(r io.Reader, db *db.DB, userID int) error {
+func Create(r io.Reader, exec db.ExecFunc, userID int) error {
 	var input ListCreateInput
 	err := json.NewDecoder(r).Decode(&input)
 	if err != nil {
@@ -24,7 +24,7 @@ func Create(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewBadRequestError("id field is required")
 	}
 
-	_, has, err := list.Get(db, input.ID)
+	_, has, err := list.Get(exec, input.ID)
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func Create(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewBadRequestError(fmt.Sprintf("specified list already exists: %d", input.ID))
 	}
 
-	err = list.Create(db, list.List{
+	err = list.Create(exec, list.List{
 		ID:          input.ID,
 		OwnerUserID: userID,
 	})

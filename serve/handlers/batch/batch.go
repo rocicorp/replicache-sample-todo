@@ -40,7 +40,7 @@ type mutationInfo struct {
 
 // Handle implements the Replicache batch upload endpoint. It processes zero or more
 // mutations specified by the request body. The response is purely informational.
-func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
+func Handle(w http.ResponseWriter, r *http.Request, d *db.DB, userID int) {
 	var req batchRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -58,10 +58,10 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 	var internalError error
 	for _, m := range req.Mutations {
 		var err error
-		_, txErr := db.Transact(func() bool {
+		_, txErr := d.Transact(func(exec db.ExecFunc) bool {
 			var currentMutationID, expectedMutationID int64
 
-			currentMutationID, internalError = replicache.GetMutationID(db, req.ClientID)
+			currentMutationID, internalError = replicache.GetMutationID(exec, req.ClientID)
 			if internalError != nil {
 				stop = true
 				return false
@@ -80,7 +80,7 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 				return false
 			}
 
-			err = processMutation(m, userID, db)
+			err = processMutation(m, userID, exec)
 
 			if err != nil && !isPermanent(err) {
 				// Transient error - don't commit and stop
@@ -89,7 +89,7 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 			}
 
 			// No error or permanent error - mark mutation as processed
-			internalError = replicache.SetMutationID(db, req.ClientID, m.ID)
+			internalError = replicache.SetMutationID(exec, req.ClientID, m.ID)
 			if internalError != nil {
 				stop = true
 				return false
@@ -129,7 +129,7 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 	}
 }
 
-func processMutation(m mutation, userID int, db *db.DB) error {
+func processMutation(m mutation, userID int, exec db.ExecFunc) error {
 	if m.Name == "" {
 		return errs.NewBadRequestError("mutation name is required")
 	}
@@ -138,13 +138,13 @@ func processMutation(m mutation, userID int, db *db.DB) error {
 	var err error
 	switch m.Name {
 	case "createList":
-		err = list.Create(r, db, userID)
+		err = list.Create(r, exec, userID)
 	case "createTodo":
-		err = todo.Create(r, db, userID)
+		err = todo.Create(r, exec, userID)
 	case "updateTodo":
-		err = todo.Update(r, db, userID)
+		err = todo.Update(r, exec, userID)
 	case "deleteTodo":
-		err = todo.Delete(r, db, userID)
+		err = todo.Delete(r, exec, userID)
 	default:
 		return errs.NewBadRequestError("unknown mutation name")
 	}

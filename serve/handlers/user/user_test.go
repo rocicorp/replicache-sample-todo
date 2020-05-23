@@ -43,7 +43,7 @@ func TestLogin(t *testing.T) {
 	for i, t := range tc {
 		msg := fmt.Sprintf("test case %d", i)
 		w := httptest.NewRecorder()
-		prevMax, err := list.GetMax(db)
+		prevMax, err := list.GetMax(db.Exec)
 		assert.NoError(err)
 		Login(w, httptest.NewRequest("POST", "/serve/login", strings.NewReader(t.request)), db)
 		assert.Equal(t.wantCode, w.Result().StatusCode)
@@ -56,11 +56,11 @@ func TestLogin(t *testing.T) {
 		if t.wantResponse != "" {
 			assert.Equal(t.wantResponse, string(body.Bytes()))
 		}
-		currentMax, err := list.GetMax(db)
+		currentMax, err := list.GetMax(db.Exec)
 		assert.NoError(err, msg)
 		if t.wantNewList {
 			assert.Equal(prevMax+1, currentMax, msg)
-			newList, has, err := list.Get(db, currentMax)
+			newList, has, err := list.Get(db.Exec, currentMax)
 			assert.NoError(err, msg)
 			assert.True(has, msg)
 			assert.Equal(t.wantUserID, newList.OwnerUserID)

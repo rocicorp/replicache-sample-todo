@@ -27,7 +27,7 @@ func TestAuthenticate(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
 	tc := []struct {
@@ -73,7 +73,7 @@ func TestPoke(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
 	os.Setenv("FCM_SERVER_KEY", "test_server_key")

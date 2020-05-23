@@ -57,10 +57,24 @@ func (db *DB) Use(dbName string) {
 //
 // Transact() itself returns an error only in the case where the transaction could not be
 // initiated, committed, or aborted for some reason.
-func (db *DB) Transact(f func() (commit bool)) (bool, error) {
-	_, err := db.Exec("BEGIN", nil)
+func (db *DB) Transact(f func(ExecFunc) (commit bool)) (bool, error) {
+	rArn := aws.String("arn:aws:rds:us-west-2:712907626835:cluster:replicache-demo-notes")
+	sArn := aws.String("arn:aws:secretsmanager:us-west-2:712907626835:secret:rds-db-credentials/cluster-X5NALMLWZ34K55M5ZZVPN2IYOI/admin-65L3ia")
+	input := &rdsdataservice.BeginTransactionInput{
+		ResourceArn: rArn,
+		SecretArn:   sArn,
+	}
+	if db.name != "" {
+		input.Database = aws.String(db.name)
+	}
+	out, err := db.svc.BeginTransaction(input)
 	if err != nil {
 		return false, fmt.Errorf("could not BEGIN: %w", err)
+	}
+	rollbackInput := rdsdataservice.RollbackTransactionInput{
+		ResourceArn:   rArn,
+		SecretArn:     sArn,
+		TransactionId: out.TransactionId,
 	}
 	defer func() {
 		r := recover()
@@ -68,24 +82,32 @@ func (db *DB) Transact(f func() (commit bool)) (bool, error) {
 			return
 		}
 		log.Printf("caught panic: %#v", r)
-		_, err = db.Exec("ROLLBACK", nil)
+		_, err := db.svc.RollbackTransaction(&rollbackInput)
 		if err != nil {
 			log.Printf("ERROR: Could not rollback transaction: %v", err)
 		}
 		panic(r)
 	}()
 
-	ok := f()
+	execFunc := func(sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
+		return db.ExecInTransaction(out.TransactionId, sql, args)
+	}
+	ok := f(execFunc)
 
 	if !ok {
-		_, err = db.Exec("ROLLBACK", nil)
+		_, err = db.svc.RollbackTransaction(&rollbackInput)
 		if err != nil {
 			return false, fmt.Errorf("could not ROLLBACK: %w", err)
 		}
 		return false, nil
 	}
 
-	_, err = db.Exec("COMMIT", nil)
+	cInput := &rdsdataservice.CommitTransactionInput{
+		ResourceArn:   rArn,
+		SecretArn:     sArn,
+		TransactionId: out.TransactionId,
+	}
+	_, err = db.svc.CommitTransaction(cInput)
 	if err != nil {
 		return false, fmt.Errorf("could not COMMIT: %w", err)
 	}
@@ -94,7 +116,13 @@ func (db *DB) Transact(f func() (commit bool)) (bool, error) {
 
 type Params map[string]interface{}
 
+type ExecFunc func(sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error)
+
 func (db *DB) Exec(sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
+	return db.ExecInTransaction(nil, sql, args)
+}
+
+func (db *DB) ExecInTransaction(transactionID *string, sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
 	fmt.Printf("Executing: %s\n", sql)
 
 	var params []*rdsdataservice.SqlParameter
@@ -109,10 +137,11 @@ func (db *DB) Exec(sql string, args Params) (*rdsdataservice.ExecuteStatementOut
 	}
 
 	input := &rdsdataservice.ExecuteStatementInput{
-		ResourceArn: aws.String("arn:aws:rds:us-west-2:712907626835:cluster:replicache-demo-notes"),
-		SecretArn:   aws.String("arn:aws:secretsmanager:us-west-2:712907626835:secret:rds-db-credentials/cluster-X5NALMLWZ34K55M5ZZVPN2IYOI/admin-65L3ia"),
-		Sql:         aws.String(sql),
-		Parameters:  params,
+		ResourceArn:   aws.String("arn:aws:rds:us-west-2:712907626835:cluster:replicache-demo-notes"),
+		SecretArn:     aws.String("arn:aws:secretsmanager:us-west-2:712907626835:secret:rds-db-credentials/cluster-X5NALMLWZ34K55M5ZZVPN2IYOI/admin-65L3ia"),
+		Sql:           aws.String(sql),
+		Parameters:    params,
+		TransactionId: transactionID,
 	}
 	if db.name != "" {
 		input.Database = aws.String(db.name)

@@ -29,10 +29,10 @@ func TestHandle(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
-	err = list.Create(db, list.List{
+	err = list.Create(db.Exec, list.List{
 		ID:          1,
 		OwnerUserID: userID,
 	})
@@ -227,11 +227,11 @@ func TestHandle(t *testing.T) {
 		assert.NoError(err, msg)
 		assert.Equal(t.wantResponse, string(body.Bytes()), msg)
 
-		gotMutationID, err := replicache.GetMutationID(db, "c1")
+		gotMutationID, err := replicache.GetMutationID(db.Exec, "c1")
 		assert.NoError(err, msg)
 		assert.Equal(t.wantMutationID, gotMutationID, msg)
 
-		ts, err := todo.GetByUser(db, 1)
+		ts, err := todo.GetByUser(db.Exec, 1)
 		assert.NoError(err, msg)
 		assert.Equal(t.wantNumTodos, len(ts), msg)
 	}

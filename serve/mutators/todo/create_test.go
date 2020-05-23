@@ -24,24 +24,24 @@ func TestCreate(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
-	otherUserID, err := user.Create(db, "bar@bar.com")
+	otherUserID, err := user.Create(db.Exec, "bar@bar.com")
 	assert.NoError(err)
 
 	l := list.List{
 		ID:          2,
 		OwnerUserID: userID,
 	}
-	err = list.Create(db, l)
+	err = list.Create(db.Exec, l)
 	assert.NoError(err)
 
 	l = list.List{
 		ID:          3,
 		OwnerUserID: otherUserID,
 	}
-	err = list.Create(db, l)
+	err = list.Create(db.Exec, l)
 	assert.NoError(err)
 
 	tc := []struct {
@@ -61,7 +61,7 @@ func TestCreate(t *testing.T) {
 
 	for i, t := range tc {
 		msg := fmt.Sprintf("test case %d", i)
-		err = Create(strings.NewReader(t.request), db, t.userID)
+		err = Create(strings.NewReader(t.request), db.Exec, t.userID)
 		if t.wantErr == nil {
 			assert.NoError(err, msg)
 		} else {

@@ -29,22 +29,22 @@ func TestClientView(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
-	err = list.Create(db, list.List{
+	err = list.Create(db.Exec, list.List{
 		ID:          2,
 		OwnerUserID: userID,
 	})
 	assert.NoError(err)
 
-	err = todo.Create(db, todo.Todo{
+	err = todo.Create(db.Exec, todo.Todo{
 		ID:     3,
 		ListID: 2,
 	})
 	assert.NoError(err)
 
-	err = replicache.SetMutationID(db, "c1", int64(1))
+	err = replicache.SetMutationID(db.Exec, "c1", int64(1))
 	assert.NoError(err)
 
 	tc := []struct {

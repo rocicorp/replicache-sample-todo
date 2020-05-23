@@ -68,22 +68,22 @@ func impl(w http.ResponseWriter, r *http.Request, db *db.DB, d fcm.Doer) {
 		clientview.Handle(w, r, db, userID)
 	case "/serve/list-create":
 		mutator.Handle(w, func() error {
-			return list.Create(r.Body, db, userID)
+			return list.Create(r.Body, db.Exec, userID)
 		})
 		dirty = true
 	case "/serve/todo-create":
 		mutator.Handle(w, func() error {
-			return todo.Create(r.Body, db, userID)
+			return todo.Create(r.Body, db.Exec, userID)
 		})
 		dirty = true
 	case "/serve/todo-update":
 		mutator.Handle(w, func() error {
-			return todo.Update(r.Body, db, userID)
+			return todo.Update(r.Body, db.Exec, userID)
 		})
 		dirty = true
 	case "/serve/todo-delete":
 		mutator.Handle(w, func() error {
-			return todo.Delete(r.Body, db, userID)
+			return todo.Delete(r.Body, db.Exec, userID)
 		})
 		dirty = true
 	default:
@@ -110,7 +110,7 @@ func authenticate(db *db.DB, w http.ResponseWriter, r *http.Request) (userID int
 		return 0
 	}
 
-	ok, err := user.Has(db, userID)
+	ok, err := user.Has(db.Exec, userID)
 	if err != nil || !ok {
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write([]byte("Authentication failed"))

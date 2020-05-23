@@ -24,24 +24,24 @@ func TestUpdate(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
-	otherUserID, err := user.Create(db, "bar@bar.com")
+	otherUserID, err := user.Create(db.Exec, "bar@bar.com")
 	assert.NoError(err)
 
 	l := list.List{
 		ID:          1,
 		OwnerUserID: userID,
 	}
-	err = list.Create(db, l)
+	err = list.Create(db.Exec, l)
 	assert.NoError(err)
 
 	l = list.List{
 		ID:          2,
 		OwnerUserID: otherUserID,
 	}
-	err = list.Create(db, l)
+	err = list.Create(db.Exec, l)
 	assert.NoError(err)
 
 	tt1 := todo.Todo{
@@ -51,7 +51,7 @@ func TestUpdate(t *testing.T) {
 		Complete: false,
 		Order:    0.5,
 	}
-	err = todo.Create(db, tt1)
+	err = todo.Create(db.Exec, tt1)
 	assert.NoError(err)
 
 	tt2 := todo.Todo{
@@ -61,7 +61,7 @@ func TestUpdate(t *testing.T) {
 		Complete: false,
 		Order:    0.5,
 	}
-	err = todo.Create(db, tt2)
+	err = todo.Create(db.Exec, tt2)
 	assert.NoError(err)
 
 	tc := []struct {
@@ -164,7 +164,7 @@ func TestUpdate(t *testing.T) {
 	}
 
 	for _, t := range tc {
-		err = Update(strings.NewReader(t.req), db, 1)
+		err = Update(strings.NewReader(t.req), db.Exec, 1)
 		if t.wantErr == nil {
 			assert.NoError(err, t.label)
 		} else {
@@ -172,7 +172,7 @@ func TestUpdate(t *testing.T) {
 			continue
 		}
 
-		got, has, err := todo.Get(db, 1)
+		got, has, err := todo.Get(db.Exec, 1)
 		assert.NoError(err, t.label)
 		assert.True(has, t.label)
 		assert.Equal(t.wantComplete, got.Complete, t.label)
@@ -180,7 +180,7 @@ func TestUpdate(t *testing.T) {
 		assert.Equal(t.wantText, got.Text, t.label)
 	}
 
-	got, has, err := todo.Get(db, 2)
+	got, has, err := todo.Get(db.Exec, 2)
 	assert.NoError(err)
 	assert.True(has)
 	want := todo.OwnedTodo{

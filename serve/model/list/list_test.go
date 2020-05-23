@@ -18,15 +18,15 @@ func TestBasic(t *testing.T) {
 	assert.NoError(err)
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
-	act, has, err := Get(db, 42)
+	act, has, err := Get(db.Exec, 42)
 	assert.NoError(err)
 	assert.False(has)
 	assert.Equal(List{}, act)
 
-	max, err := GetMax(db)
+	max, err := GetMax(db.Exec)
 	assert.NoError(err)
 	assert.Equal(0, max)
 
@@ -34,14 +34,14 @@ func TestBasic(t *testing.T) {
 		ID:          42,
 		OwnerUserID: userID,
 	}
-	err = Create(db, exp)
+	err = Create(db.Exec, exp)
 	assert.NoError(err)
 
-	max, err = GetMax(db)
+	max, err = GetMax(db.Exec)
 	assert.NoError(err)
 	assert.Equal(42, max)
 
-	act, has, err = Get(db, 42)
+	act, has, err = Get(db.Exec, 42)
 	assert.NoError(err)
 	assert.True(has)
 	assert.Equal(exp, act)
@@ -50,10 +50,10 @@ func TestBasic(t *testing.T) {
 		ID:          43,
 		OwnerUserID: userID,
 	}
-	err = Create(db, exp2)
+	err = Create(db.Exec, exp2)
 	assert.NoError(err)
 
-	act2, err := GetByUser(db, userID)
+	act2, err := GetByUser(db.Exec, userID)
 	assert.NoError(err)
 
 	assert.Equal([]List{exp, exp2}, act2)

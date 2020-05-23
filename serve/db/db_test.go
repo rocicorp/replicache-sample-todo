@@ -34,18 +34,16 @@ func TestTransact(t *testing.T) {
 	tc := []struct {
 		ret           bool   // return value of user function
 		panic         bool   // whether user function panics
-		failBegin     bool   // whether opening the tx fails
 		expectedRet   bool   // expected return from Transact()
 		expectedError string // expected error from Transact()
 		expectedPanic bool   // whether Transact() expected to panic
 		expectedVal   int    // expected count in DB after Transact() returns
-		// TODO: test COMMIT and ROLLBACK failing
+		// TODO: test BEGIN and COMMIT and ROLLBACK failing
 		// Probably need to mock out RDS to do this well
 	}{
-		{false, false, false, false, "", false, 0},
-		{true, false, false, true, "", false, 1},
-		{false, true, false, false, "", true, 1},
-		{false, false, true, false, "could not BEGIN: BadRequestException: Unknown database 'nonexistant'", false, 1},
+		{false, false, false, "", false, 0},
+		{true, false, true, "", false, 1},
+		{false, true, false, "", true, 1},
 	}
 
 	for i, t := range tc {
@@ -57,12 +55,20 @@ func TestTransact(t *testing.T) {
 			defer func() {
 				recovered = recover()
 			}()
-			if t.failBegin {
-				db.Use("nonexistant")
-			}
-			ret, err = db.Transact(func() (commit bool) {
-				_, err := db.Exec("UPDATE Foo SET Count = Count + 1 WHERE Id = 1", nil)
+			out, err := db.Exec("SELECT Count FROM Foo WHERE Id = 1", nil)
+			assert.NoError(err)
+			count := *out.Records[0][0].LongValue
+			ret, err = db.Transact(func(exec ExecFunc) (commit bool) {
+				_, err := exec("UPDATE Foo SET Count = Count + 1 WHERE Id = 1", nil)
 				assert.NoError(err, msg)
+			
+				// Here we check isolation. A query run outside of the transaction
+				// should not see the above update. (We had a bug where transactions
+				// were not actually creating transactions.)
+				out, err := db.Exec("SELECT Count FROM Foo WHERE Id = 1", nil)
+				assert.NoError(err, msg)
+				assert.Equal(count, *out.Records[0][0].LongValue, msg)
+			
 				if t.panic {
 					panic("bonk")
 				}

@@ -40,7 +40,7 @@ func TestPutGet(t *testing.T) {
 		msg := fmt.Sprintf("test case %d", i)
 
 		if t.put != nil {
-			err = SetMutationID(db, t.clientID, int64(*t.put))
+			err = SetMutationID(db.Exec, t.clientID, int64(*t.put))
 			if t.wantPutError != "" {
 				assert.Error(err, t.wantPutError)
 			} else {
@@ -48,7 +48,7 @@ func TestPutGet(t *testing.T) {
 			}
 		}
 
-		actual, err := GetMutationID(db, t.clientID)
+		actual, err := GetMutationID(db.Exec, t.clientID)
 		assert.NoError(err, msg)
 		assert.Equal(int64(t.want), actual, msg)
 	}

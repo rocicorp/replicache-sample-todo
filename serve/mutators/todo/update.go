@@ -16,7 +16,7 @@ type UpdateInput struct {
 	Order    *float64 `json:"order,omitempty"`
 }
 
-func Update(r io.Reader, db *db.DB, userID int) error {
+func Update(r io.Reader, exec db.ExecFunc, userID int) error {
 	var input UpdateInput
 	err := json.NewDecoder(r).Decode(&input)
 	if err != nil {
@@ -26,7 +26,7 @@ func Update(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewBadRequestError("id field is required")
 	}
 
-	got, has, err := todo.Get(db, input.ID)
+	got, has, err := todo.Get(exec, input.ID)
 	if err != nil {
 		return err
 	}
@@ -38,7 +38,7 @@ func Update(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewUnauthorizedError("access unauthorized")
 	}
 
-	err = todo.Update(db, input.ID, input.Complete, input.Order, input.Text)
+	err = todo.Update(exec, input.ID, input.Complete, input.Order, input.Text)
 	if err != nil {
 		return err
 	}

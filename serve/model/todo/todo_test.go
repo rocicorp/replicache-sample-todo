@@ -20,16 +20,16 @@ func TestBasic(t *testing.T) {
 	assert.NoError(err)
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
-	err = list.Create(db, list.List{
+	err = list.Create(db.Exec, list.List{
 		ID:          43,
 		OwnerUserID: userID,
 	})
 	assert.NoError(err)
 
-	has, err := Has(db, 44)
+	has, err := Has(db.Exec, 44)
 	assert.NoError(err)
 	assert.False(has)
 
@@ -40,10 +40,10 @@ func TestBasic(t *testing.T) {
 		Complete: true,
 		Order:    0.5,
 	}
-	err = Create(db, exp)
+	err = Create(db.Exec, exp)
 	assert.NoError(err)
 
-	has, err = Has(db, 44)
+	has, err = Has(db.Exec, 44)
 	assert.NoError(err)
 	assert.True(has)
 }
@@ -57,10 +57,10 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(err)
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
-	err = list.Create(db, list.List{
+	err = list.Create(db.Exec, list.List{
 		ID:          1,
 		OwnerUserID: userID,
 	})
@@ -80,10 +80,10 @@ func TestUpdate(t *testing.T) {
 		Complete: true,
 		Order:    0.1,
 	}
-	err = Create(db, t1)
+	err = Create(db.Exec, t1)
 	assert.NoError(err)
 
-	err = Create(db, t2)
+	err = Create(db.Exec, t2)
 	assert.NoError(err)
 
 	pb := func(v bool) *bool {
@@ -125,10 +125,10 @@ func TestUpdate(t *testing.T) {
 		if t.text != nil {
 			exp.Text = *t.text
 		}
-		err := Update(db, 1, t.complete, t.order, t.text)
+		err := Update(db.Exec, 1, t.complete, t.order, t.text)
 		assert.NoError(err, msg)
 
-		act, has, err := Get(db, 1)
+		act, has, err := Get(db.Exec, 1)
 		assert.NoError(err, msg)
 		assert.True(has, msg)
 		assert.Equal(exp, act)
@@ -144,10 +144,10 @@ func TestDelete(t *testing.T) {
 	assert.NoError(err)
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.Exec, "foo@foo.com")
 	assert.NoError(err)
 
-	err = list.Create(db, list.List{
+	err = list.Create(db.Exec, list.List{
 		ID:          1,
 		OwnerUserID: userID,
 	})
@@ -160,7 +160,7 @@ func TestDelete(t *testing.T) {
 		Complete: true,
 		Order:    0.1,
 	}
-	err = Create(db, t1)
+	err = Create(db.Exec, t1)
 	assert.NoError(err)
 
 	t2 := Todo{
@@ -170,16 +170,16 @@ func TestDelete(t *testing.T) {
 		Complete: true,
 		Order:    0.1,
 	}
-	err = Create(db, t2)
+	err = Create(db.Exec, t2)
 	assert.NoError(err)
 
 	f := func(id int, wantT1, wantT2 bool) {
-		err := Delete(db, id)
+		err := Delete(db.Exec, id)
 		assert.NoError(err)
 
-		hasT1, err := Has(db, 1)
+		hasT1, err := Has(db.Exec, 1)
 		assert.NoError(err)
-		hasT2, err := Has(db, 2)
+		hasT2, err := Has(db.Exec, 2)
 		assert.NoError(err)
 
 		assert.Equal(wantT1, hasT1)
