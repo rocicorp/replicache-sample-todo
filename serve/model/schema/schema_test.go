@@ -10,9 +10,9 @@ import (
 func TestSchema(t *testing.T) {
 	assert := assert.New(t)
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE 'foo'", nil)
+	_, err := db.ExecStatement("DROP DATABASE 'foo'", nil)
 	err = Create(db, "foo")
 	assert.NoError(err)
-	out, err := db.Exec("SHOW DATABASES LIKE 'foo'", nil)
+	out, err := db.ExecStatement("SHOW DATABASES LIKE 'foo'", nil)
 	assert.Equal(1, len(out.Records))
 }

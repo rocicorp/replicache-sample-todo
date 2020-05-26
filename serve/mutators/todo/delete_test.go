@@ -17,31 +17,31 @@ func TestDelete(t *testing.T) {
 	assert := assert.New(t)
 
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err := db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)
 
 	db.Use("test")
 
-	userID, err := user.Create(db.Exec, "foo@foo.com")
+	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
 	assert.NoError(err)
 
-	otherUserID, err := user.Create(db.Exec, "bar@bar.com")
+	otherUserID, err := user.Create(db.ExecStatement, "bar@bar.com")
 	assert.NoError(err)
 
 	l := list.List{
 		ID:          1,
 		OwnerUserID: userID,
 	}
-	err = list.Create(db.Exec, l)
+	err = list.Create(db.ExecStatement, l)
 	assert.NoError(err)
 
 	l = list.List{
 		ID:          2,
 		OwnerUserID: otherUserID,
 	}
-	err = list.Create(db.Exec, l)
+	err = list.Create(db.ExecStatement, l)
 	assert.NoError(err)
 
 	tt1 := todo.Todo{
@@ -51,7 +51,7 @@ func TestDelete(t *testing.T) {
 		Complete: false,
 		Order:    0.5,
 	}
-	err = todo.Create(db.Exec, tt1)
+	err = todo.Create(db.ExecStatement, tt1)
 	assert.NoError(err)
 
 	tt2 := todo.Todo{
@@ -61,22 +61,22 @@ func TestDelete(t *testing.T) {
 		Complete: false,
 		Order:    0.5,
 	}
-	err = todo.Create(db.Exec, tt2)
+	err = todo.Create(db.ExecStatement, tt2)
 	assert.NoError(err)
 
 	f := func(req string, wantErr error, wantTodo1, wantTodo2 bool) {
-		err = Delete(strings.NewReader(req), db.Exec, 1)
+		err = Delete(strings.NewReader(req), db.ExecStatement, 1)
 		if wantErr == nil {
 			assert.NoError(err)
 		} else {
 			assert.Equal(wantErr, err)
 		}
 
-		hasT1, err := todo.Has(db.Exec, 1)
+		hasT1, err := todo.Has(db.ExecStatement, 1)
 		assert.NoError(err)
 		assert.Equal(wantTodo1, hasT1)
 
-		hasT2, err := todo.Has(db.Exec, 2)
+		hasT2, err := todo.Has(db.ExecStatement, 2)
 		assert.NoError(err)
 		assert.Equal(wantTodo2, hasT2)
 	}

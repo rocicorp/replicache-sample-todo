@@ -22,29 +22,29 @@ func TestClientView(t *testing.T) {
 	assert := assert.New(t)
 
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err := db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)
 
 	db.Use("test")
 
-	userID, err := user.Create(db.Exec, "foo@foo.com")
+	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
 	assert.NoError(err)
 
-	err = list.Create(db.Exec, list.List{
+	err = list.Create(db.ExecStatement, list.List{
 		ID:          2,
 		OwnerUserID: userID,
 	})
 	assert.NoError(err)
 
-	err = todo.Create(db.Exec, todo.Todo{
+	err = todo.Create(db.ExecStatement, todo.Todo{
 		ID:     3,
 		ListID: 2,
 	})
 	assert.NoError(err)
 
-	err = replicache.SetMutationID(db.Exec, "c1", int64(1))
+	err = replicache.SetMutationID(db.ExecStatement, "c1", int64(1))
 	assert.NoError(err)
 
 	tc := []struct {

@@ -12,21 +12,21 @@ import (
 func TestBasic(t *testing.T) {
 	assert := assert.New(t)
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err := db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)
 	db.Use("test")
 
-	userID, err := user.Create(db.Exec, "foo@foo.com")
+	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
 	assert.NoError(err)
 
-	act, has, err := Get(db.Exec, 42)
+	act, has, err := Get(db.ExecStatement, 42)
 	assert.NoError(err)
 	assert.False(has)
 	assert.Equal(List{}, act)
 
-	max, err := GetMax(db.Exec)
+	max, err := GetMax(db.ExecStatement)
 	assert.NoError(err)
 	assert.Equal(0, max)
 
@@ -34,14 +34,14 @@ func TestBasic(t *testing.T) {
 		ID:          42,
 		OwnerUserID: userID,
 	}
-	err = Create(db.Exec, exp)
+	err = Create(db.ExecStatement, exp)
 	assert.NoError(err)
 
-	max, err = GetMax(db.Exec)
+	max, err = GetMax(db.ExecStatement)
 	assert.NoError(err)
 	assert.Equal(42, max)
 
-	act, has, err = Get(db.Exec, 42)
+	act, has, err = Get(db.ExecStatement, 42)
 	assert.NoError(err)
 	assert.True(has)
 	assert.Equal(exp, act)
@@ -50,10 +50,10 @@ func TestBasic(t *testing.T) {
 		ID:          43,
 		OwnerUserID: userID,
 	}
-	err = Create(db.Exec, exp2)
+	err = Create(db.ExecStatement, exp2)
 	assert.NoError(err)
 
-	act2, err := GetByUser(db.Exec, userID)
+	act2, err := GetByUser(db.ExecStatement, userID)
 	assert.NoError(err)
 
 	assert.Equal([]List{exp, exp2}, act2)

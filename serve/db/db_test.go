@@ -10,7 +10,7 @@ import (
 func TestBasics(t *testing.T) {
 	assert := assert.New(t)
 	db := New()
-	out, err := db.Exec("SELECT Now()", nil)
+	out, err := db.ExecStatement("SELECT Now()", nil)
 	assert.NoError(err)
 	assert.Equal(1, len(out.Records))
 	assert.Regexp(`\d{4}\-\d{2}\-\d{2} \d{2}:\d{2}:\d{2}`, *out.Records[0][0].StringValue)
@@ -21,14 +21,14 @@ func TestTransact(t *testing.T) {
 
 	db := New()
 	var err error
-	_, err = db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err = db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
-	_, err = db.Exec("CREATE DATABASE test", nil)
+	_, err = db.ExecStatement("CREATE DATABASE test", nil)
 	assert.NoError(err)
 	db.Use("test")
-	_, err = db.Exec("CREATE TABLE Foo (Id INT NOT NULL PRIMARY KEY, Count INT NOT NULL)", nil)
+	_, err = db.ExecStatement("CREATE TABLE Foo (Id INT NOT NULL PRIMARY KEY, Count INT NOT NULL)", nil)
 	assert.NoError(err)
-	_, err = db.Exec("INSERT INTO Foo (Id, Count) VALUE (1, 0)", nil)
+	_, err = db.ExecStatement("INSERT INTO Foo (Id, Count) VALUE (1, 0)", nil)
 	assert.NoError(err)
 
 	tc := []struct {
@@ -55,7 +55,7 @@ func TestTransact(t *testing.T) {
 			defer func() {
 				recovered = recover()
 			}()
-			out, err := db.Exec("SELECT Count FROM Foo WHERE Id = 1", nil)
+			out, err := db.ExecStatement("SELECT Count FROM Foo WHERE Id = 1", nil)
 			assert.NoError(err)
 			count := *out.Records[0][0].LongValue
 			ret, err = db.Transact(func(exec ExecFunc) (commit bool) {
@@ -65,7 +65,7 @@ func TestTransact(t *testing.T) {
 				// Here we check isolation. A query run outside of the transaction
 				// should not see the above update. (We had a bug where transactions
 				// were not actually creating transactions.)
-				out, err := db.Exec("SELECT Count FROM Foo WHERE Id = 1", nil)
+				out, err := db.ExecStatement("SELECT Count FROM Foo WHERE Id = 1", nil)
 				assert.NoError(err, msg)
 				assert.Equal(count, *out.Records[0][0].LongValue, msg)
 			
@@ -91,7 +91,7 @@ func TestTransact(t *testing.T) {
 			assert.Nil(recovered, msg)
 		}
 
-		out, err := db.Exec("SELECT Count FROM Foo WHERE Id = 1", nil)
+		out, err := db.ExecStatement("SELECT Count FROM Foo WHERE Id = 1", nil)
 		assert.NoError(err, msg)
 		assert.Equal(1, len(out.Records), msg)
 		assert.Equal(int64(t.expectedVal), *out.Records[0][0].LongValue, msg)

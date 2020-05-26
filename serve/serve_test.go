@@ -20,14 +20,14 @@ func TestAuthenticate(t *testing.T) {
 	assert := assert.New(t)
 
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err := db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)
 
 	db.Use("test")
 
-	userID, err := user.Create(db.Exec, "foo@foo.com")
+	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
 	assert.NoError(err)
 
 	tc := []struct {
@@ -66,14 +66,14 @@ func TestPoke(t *testing.T) {
 	assert := assert.New(t)
 
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err := db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)
 
 	db.Use("test")
 
-	userID, err := user.Create(db.Exec, "foo@foo.com")
+	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
 	assert.NoError(err)
 
 	os.Setenv("FCM_SERVER_KEY", "test_server_key")

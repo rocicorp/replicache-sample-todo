@@ -22,17 +22,17 @@ func TestHandle(t *testing.T) {
 	assert := assert.New(t)
 
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err := db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)
 
 	db.Use("test")
 
-	userID, err := user.Create(db.Exec, "foo@foo.com")
+	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
 	assert.NoError(err)
 
-	err = list.Create(db.Exec, list.List{
+	err = list.Create(db.ExecStatement, list.List{
 		ID:          1,
 		OwnerUserID: userID,
 	})
@@ -227,11 +227,11 @@ func TestHandle(t *testing.T) {
 		assert.NoError(err, msg)
 		assert.Equal(t.wantResponse, string(body.Bytes()), msg)
 
-		gotMutationID, err := replicache.GetMutationID(db.Exec, "c1")
+		gotMutationID, err := replicache.GetMutationID(db.ExecStatement, "c1")
 		assert.NoError(err, msg)
 		assert.Equal(t.wantMutationID, gotMutationID, msg)
 
-		ts, err := todo.GetByUser(db.Exec, 1)
+		ts, err := todo.GetByUser(db.ExecStatement, 1)
 		assert.NoError(err, msg)
 		assert.Equal(t.wantNumTodos, len(ts), msg)
 	}

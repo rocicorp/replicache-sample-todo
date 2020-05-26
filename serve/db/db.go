@@ -16,6 +16,8 @@ const (
 	awsAccessKeyId     = "REPLICANT_AWS_ACCESS_KEY_ID"
 	awsSecretAccessKey = "REPLICANT_AWS_SECRET_ACCESS_KEY"
 	awsRegion          = "us-west-2"
+	awsResourceArn     = "arn:aws:rds:us-west-2:712907626835:cluster:replicache-demo-notes"
+	awsSecretArn       = "arn:aws:secretsmanager:us-west-2:712907626835:secret:rds-db-credentials/cluster-X5NALMLWZ34K55M5ZZVPN2IYOI/admin-65L3ia"
 )
 
 type DB struct {
@@ -58,11 +60,9 @@ func (db *DB) Use(dbName string) {
 // Transact() itself returns an error only in the case where the transaction could not be
 // initiated, committed, or aborted for some reason.
 func (db *DB) Transact(f func(ExecFunc) (commit bool)) (bool, error) {
-	rArn := aws.String("arn:aws:rds:us-west-2:712907626835:cluster:replicache-demo-notes")
-	sArn := aws.String("arn:aws:secretsmanager:us-west-2:712907626835:secret:rds-db-credentials/cluster-X5NALMLWZ34K55M5ZZVPN2IYOI/admin-65L3ia")
 	input := &rdsdataservice.BeginTransactionInput{
-		ResourceArn: rArn,
-		SecretArn:   sArn,
+		ResourceArn: aws.String(awsResourceArn),
+		SecretArn:   aws.String(awsSecretArn),
 	}
 	if db.name != "" {
 		input.Database = aws.String(db.name)
@@ -72,8 +72,8 @@ func (db *DB) Transact(f func(ExecFunc) (commit bool)) (bool, error) {
 		return false, fmt.Errorf("could not BEGIN: %w", err)
 	}
 	rollbackInput := rdsdataservice.RollbackTransactionInput{
-		ResourceArn:   rArn,
-		SecretArn:     sArn,
+		ResourceArn:   aws.String(awsResourceArn),
+		SecretArn:     aws.String(awsSecretArn),
 		TransactionId: out.TransactionId,
 	}
 	defer func() {
@@ -90,7 +90,7 @@ func (db *DB) Transact(f func(ExecFunc) (commit bool)) (bool, error) {
 	}()
 
 	execFunc := func(sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
-		return db.ExecInTransaction(out.TransactionId, sql, args)
+		return db.Exec(*out.TransactionId, sql, args)
 	}
 	ok := f(execFunc)
 
@@ -103,8 +103,8 @@ func (db *DB) Transact(f func(ExecFunc) (commit bool)) (bool, error) {
 	}
 
 	cInput := &rdsdataservice.CommitTransactionInput{
-		ResourceArn:   rArn,
-		SecretArn:     sArn,
+		ResourceArn:   aws.String(awsResourceArn),
+		SecretArn:     aws.String(awsSecretArn),
 		TransactionId: out.TransactionId,
 	}
 	_, err = db.svc.CommitTransaction(cInput)
@@ -118,11 +118,16 @@ type Params map[string]interface{}
 
 type ExecFunc func(sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error)
 
-func (db *DB) Exec(sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
-	return db.ExecInTransaction(nil, sql, args)
+// ExecStatement executes a sql statement. To execute a statement in a transaction,
+// use Transact.
+func (db *DB) ExecStatement(sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
+	return db.Exec("", sql, args)
 }
 
-func (db *DB) ExecInTransaction(transactionID *string, sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
+// Exec executes the sql statement. If transactionID is not empty the statement
+// is executed within the given transaction. If transactionID is empty it does not
+// execute in a transaction.
+func (db *DB) Exec(transactionID string, sql string, args Params) (*rdsdataservice.ExecuteStatementOutput, error) {
 	fmt.Printf("Executing: %s\n", sql)
 
 	var params []*rdsdataservice.SqlParameter
@@ -137,11 +142,13 @@ func (db *DB) ExecInTransaction(transactionID *string, sql string, args Params) 
 	}
 
 	input := &rdsdataservice.ExecuteStatementInput{
-		ResourceArn:   aws.String("arn:aws:rds:us-west-2:712907626835:cluster:replicache-demo-notes"),
-		SecretArn:     aws.String("arn:aws:secretsmanager:us-west-2:712907626835:secret:rds-db-credentials/cluster-X5NALMLWZ34K55M5ZZVPN2IYOI/admin-65L3ia"),
-		Sql:           aws.String(sql),
-		Parameters:    params,
-		TransactionId: transactionID,
+		ResourceArn: aws.String(awsResourceArn),
+		SecretArn:   aws.String(awsSecretArn),
+		Sql:         aws.String(sql),
+		Parameters:  params,
+	}
+	if transactionID != "" {
+		input.TransactionId = &transactionID
 	}
 	if db.name != "" {
 		input.Database = aws.String(db.name)

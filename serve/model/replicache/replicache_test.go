@@ -30,7 +30,7 @@ func TestPutGet(t *testing.T) {
 	}
 
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err := db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)
@@ -40,7 +40,7 @@ func TestPutGet(t *testing.T) {
 		msg := fmt.Sprintf("test case %d", i)
 
 		if t.put != nil {
-			err = SetMutationID(db.Exec, t.clientID, int64(*t.put))
+			err = SetMutationID(db.ExecStatement, t.clientID, int64(*t.put))
 			if t.wantPutError != "" {
 				assert.Error(err, t.wantPutError)
 			} else {
@@ -48,7 +48,7 @@ func TestPutGet(t *testing.T) {
 			}
 		}
 
-		actual, err := GetMutationID(db.Exec, t.clientID)
+		actual, err := GetMutationID(db.ExecStatement, t.clientID)
 		assert.NoError(err, msg)
 		assert.Equal(int64(t.want), actual, msg)
 	}
