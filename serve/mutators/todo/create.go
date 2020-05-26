@@ -13,7 +13,7 @@ import (
 
 type CreateInput todo.Todo
 
-func Create(r io.Reader, db *db.DB, userID int) error {
+func Create(r io.Reader, exec db.ExecFunc, userID int) error {
 	var input CreateInput
 	err := json.NewDecoder(r).Decode(&input)
 	if err != nil {
@@ -26,7 +26,7 @@ func Create(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewBadRequestError("listID field is required")
 	}
 
-	hasTodo, err := todo.Has(db, input.ID)
+	hasTodo, err := todo.Has(exec, input.ID)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func Create(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewBadRequestError(fmt.Sprintf("specified todo already exists: %d", input.ID))
 	}
 
-	list, hasList, err := list.Get(db, input.ListID)
+	list, hasList, err := list.Get(exec, input.ListID)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func Create(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewUnauthorizedError(fmt.Sprintf("cannot access specified list: %d", input.ListID))
 	}
 
-	err = todo.Create(db, todo.Todo(input))
+	err = todo.Create(exec, todo.Todo(input))
 	if err != nil {
 		return err
 	}

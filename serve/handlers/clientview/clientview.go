@@ -17,7 +17,7 @@ type clientViewRequest struct {
 	ClientID string `json:"clientID"`
 }
 
-func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
+func Handle(w http.ResponseWriter, r *http.Request, d *db.DB, userID int) {
 	var req clientViewRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
@@ -33,19 +33,19 @@ func Handle(w http.ResponseWriter, r *http.Request, db *db.DB, userID int) {
 	var lists []list.List
 	var todos []todo.Todo
 	var lastMutationID int64
-	_, err = db.Transact(func() bool {
+	_, err = d.Transact(func(exec db.ExecFunc) bool {
 		var err error
-		lastMutationID, err = replicache.GetMutationID(db, req.ClientID)
+		lastMutationID, err = replicache.GetMutationID(exec, req.ClientID)
 		if err != nil {
 			httperr.ServerError(w, err.Error())
 			return false
 		}
-		lists, err = list.GetByUser(db, userID)
+		lists, err = list.GetByUser(exec, userID)
 		if err != nil {
 			httperr.ServerError(w, err.Error())
 			return false
 		}
-		todos, err = todo.GetByUser(db, userID)
+		todos, err = todo.GetByUser(exec, userID)
 		if err != nil {
 			httperr.ServerError(w, err.Error())
 			return false

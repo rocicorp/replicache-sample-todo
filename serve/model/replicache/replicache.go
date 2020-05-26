@@ -8,8 +8,8 @@ import (
 
 // GetMutationID fetches the last processed mutation ID for a client from the database.
 // Returns zero and nil if the specified client is new and has no last mutationID.
-func GetMutationID(d *db.DB, clientID string) (int64, error) {
-	output, err := d.Exec("SELECT MutationID FROM Replicache WHERE ClientID = :clientid", db.Params{"clientid": clientID})
+func GetMutationID(exec db.ExecFunc, clientID string) (int64, error) {
+	output, err := exec("SELECT MutationID FROM Replicache WHERE ClientID = :clientid", db.Params{"clientid": clientID})
 	if err != nil {
 		return 0, err
 	}
@@ -26,8 +26,8 @@ func GetMutationID(d *db.DB, clientID string) (int64, error) {
 }
 
 // SetMutationID updates the database with the last processed clientID for a client.
-func SetMutationID(d *db.DB, clientID string, mutationID int64) error {
-	last, err := GetMutationID(d, clientID)
+func SetMutationID(exec db.ExecFunc, clientID string, mutationID int64) error {
+	last, err := GetMutationID(exec, clientID)
 	if err != nil {
 		return err
 	}
@@ -36,11 +36,11 @@ func SetMutationID(d *db.DB, clientID string, mutationID int64) error {
 		return fmt.Errorf("unexpected new MutationID. Expected %d, got %d", expected, mutationID)
 	}
 	if last == 0 {
-		_, err = d.Exec("INSERT INTO Replicache (ClientID, MutationID) VALUES (:clientid, :mutationid)",
+		_, err = exec("INSERT INTO Replicache (ClientID, MutationID) VALUES (:clientid, :mutationid)",
 			db.Params{"clientid": clientID, "mutationid": mutationID})
 		return err
 	}
-	_, err = d.Exec("UPDATE Replicache SET MutationID=:mutationid WHERE ClientID=:clientid",
+	_, err = exec("UPDATE Replicache SET MutationID=:mutationid WHERE ClientID=:clientid",
 		db.Params{"clientid": clientID, "mutationid": mutationID})
 	return err
 }

@@ -17,31 +17,31 @@ func TestCreate(t *testing.T) {
 	assert := assert.New(t)
 
 	db := db.New()
-	_, err := db.Exec("DROP DATABASE IF EXISTS test", nil)
+	_, err := db.ExecStatement("DROP DATABASE IF EXISTS test", nil)
 	assert.NoError(err)
 	err = schema.Create(db, "test")
 	assert.NoError(err)
 
 	db.Use("test")
 
-	userID, err := user.Create(db, "foo@foo.com")
+	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
 	assert.NoError(err)
 
-	otherUserID, err := user.Create(db, "bar@bar.com")
+	otherUserID, err := user.Create(db.ExecStatement, "bar@bar.com")
 	assert.NoError(err)
 
 	l := list.List{
 		ID:          2,
 		OwnerUserID: userID,
 	}
-	err = list.Create(db, l)
+	err = list.Create(db.ExecStatement, l)
 	assert.NoError(err)
 
 	l = list.List{
 		ID:          3,
 		OwnerUserID: otherUserID,
 	}
-	err = list.Create(db, l)
+	err = list.Create(db.ExecStatement, l)
 	assert.NoError(err)
 
 	tc := []struct {
@@ -61,7 +61,7 @@ func TestCreate(t *testing.T) {
 
 	for i, t := range tc {
 		msg := fmt.Sprintf("test case %d", i)
-		err = Create(strings.NewReader(t.request), db, t.userID)
+		err = Create(strings.NewReader(t.request), db.ExecStatement, t.userID)
 		if t.wantErr == nil {
 			assert.NoError(err, msg)
 		} else {

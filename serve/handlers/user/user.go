@@ -18,7 +18,7 @@ type LoginOutput struct {
 	Id int `json:"id"`
 }
 
-func Login(w http.ResponseWriter, r *http.Request, db *db.DB) {
+func Login(w http.ResponseWriter, r *http.Request, d *db.DB) {
 	var input LoginInput
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -32,27 +32,27 @@ func Login(w http.ResponseWriter, r *http.Request, db *db.DB) {
 	}
 
 	var id int
-	_, err = db.Transact(func() bool {
+	_, err = d.Transact(func(exec db.ExecFunc) bool {
 		var err error
-		id, err = user.FindByEmail(db, input.Email)
+		id, err = user.FindByEmail(exec, input.Email)
 		if err != nil {
 			httperr.ServerError(w, err.Error())
 			return false
 		}
 
 		if id == 0 {
-			id, err = user.Create(db, input.Email)
+			id, err = user.Create(exec, input.Email)
 			if err != nil {
 				httperr.ServerError(w, err.Error())
 				return false
 			}
-			listID, err := list.GetMax(db)
+			listID, err := list.GetMax(exec)
 			if err != nil {
 				httperr.ServerError(w, err.Error())
 				return false
 			}
 			listID++
-			err = list.Create(db, list.List{
+			err = list.Create(exec, list.List{
 				ID:          listID,
 				OwnerUserID: id,
 			})

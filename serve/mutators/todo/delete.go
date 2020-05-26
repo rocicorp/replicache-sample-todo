@@ -13,7 +13,7 @@ type Input struct {
 	ID int `json:"id"`
 }
 
-func Delete(r io.Reader, db *db.DB, userID int) error {
+func Delete(r io.Reader, exec db.ExecFunc, userID int) error {
 	var input Input
 	err := json.NewDecoder(r).Decode(&input)
 	if err != nil {
@@ -23,7 +23,7 @@ func Delete(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewBadRequestError("id field is required")
 	}
 
-	got, has, err := todo.Get(db, input.ID)
+	got, has, err := todo.Get(exec, input.ID)
 	if err != nil {
 		return err
 	}
@@ -35,7 +35,7 @@ func Delete(r io.Reader, db *db.DB, userID int) error {
 		return errs.NewUnauthorizedError("access unauthorized")
 	}
 
-	err = todo.Delete(db, input.ID)
+	err = todo.Delete(exec, input.ID)
 	if err != nil {
 		return err
 	}
