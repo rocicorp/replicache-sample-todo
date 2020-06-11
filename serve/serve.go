@@ -48,6 +48,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func impl(w http.ResponseWriter, r *http.Request, db *db.DB, d fcm.Doer) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	switch r.URL.Path {
 	case "/serve/login":
 		userhandler.Login(w, r, db)
