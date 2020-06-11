@@ -19,8 +19,6 @@ type LoginOutput struct {
 }
 
 func Login(w http.ResponseWriter, r *http.Request, d *db.DB) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	var input LoginInput
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
