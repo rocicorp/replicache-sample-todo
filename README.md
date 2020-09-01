@@ -48,10 +48,11 @@ curl -d '{"email":"foo@bar.com"}' https://replicache-sample-todo.now.sh/serve/lo
 
 # Create a TODO
 # If the List ID is unknown, it is implicity created.
-curl -H 'Authorization: <userid>'  -H "replicache-sample-todo.now.sh" -H "Content-type: application/json" \
+curl -H 'Authorization: <userid>'  -H "Content-type: application/json" \
   -d '{"id": 1, "listID": 1, "text": "Take out the trash", "complete": true, "order": 0.5}' \
   https://replicache-sample-todo.now.sh/serve/todo-create
 
 # Get current Client View
-curl -X POST -d '{"clientID":"12345"}' -H "replicache-sample-todo.now.sh" -H "Content-type: application/json" -H "Authorization: <userid>" https://replicache-sample-todo.now.sh/serve/replicache-client-view
+curl -X POST -d '{"clientID":"12345"}' -H "Content-type: application/json"\
+  -H "Authorization: <userid>" https://replicache-sample-todo.now.sh/serve/replicache-client-view
 ```
