@@ -29,6 +29,15 @@ const (
 
 // Handler implements the Zeit Now entrypoint for our server.
 func Handler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-type, Referer, User-agent, X-Replicache-SyncID")
+
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(200)
+		return
+	}
+
 	name, err := dbName()
 	if err != nil {
 		httperr.ServerError(w, err.Error())
@@ -48,8 +57,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func impl(w http.ResponseWriter, r *http.Request, db *db.DB, d fcm.Doer) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-
 	switch r.URL.Path {
 	case "/serve/login":
 		userhandler.Login(w, r, db)

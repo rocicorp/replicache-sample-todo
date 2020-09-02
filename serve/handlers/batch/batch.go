@@ -41,15 +41,6 @@ type mutationInfo struct {
 // Handle implements the Replicache batch upload endpoint. It processes zero or more
 // mutations specified by the request body. The response is purely informational.
 func Handle(w http.ResponseWriter, r *http.Request, d *db.DB, userID int) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Methods", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-type, Referer, User-agent, X-Replicache-SyncID")
-
-	if r.Method == "OPTIONS" {
-		w.WriteHeader(200)
-		return
-	}
-
 	var req batchRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
