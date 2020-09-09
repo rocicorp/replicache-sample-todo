@@ -1,6 +1,8 @@
 package todo
 
 import (
+	"log"
+
 	"roci.dev/replicache-sample-todo/serve/db"
 )
 
@@ -31,6 +33,7 @@ func Create(exec db.ExecFunc, todo Todo) error {
 }
 
 func Update(exec db.ExecFunc, id int, complete *bool, order *float64, title *string) error {
+	log.Printf("Updating: id: %v, complete: %v, order: %v, title: %v", id, complete, order, title)
 	_, err := exec(
 		`UPDATE Todo SET Complete=COALESCE(:complete,Complete), SortOrder=COALESCE(:order,SortOrder), Title=COALESCE(:title,Title) WHERE Id=:id`,
 		db.Params{
