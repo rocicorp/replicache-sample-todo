@@ -1,7 +1,7 @@
 {
     "version": 2,
     "builds": [
-        { "src": "serve/serve.go", "use": "@now/go" }
+        { "src": "serve/serve.go", "use": "@vercel/go" }
     ],
     "routes": [
         { "src": "/serve/.*", "dest": "/serve/serve.go" }
