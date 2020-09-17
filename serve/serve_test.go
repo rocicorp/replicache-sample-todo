@@ -3,7 +3,6 @@ package serve
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -55,12 +54,16 @@ func TestAuthenticate(t *testing.T) {
 }
 
 type doer struct {
-	gotReq *http.Request
+	gotTopic string
+	gotEvent string
+	gotData  interface{}
 }
 
-func (d *doer) Do(r *http.Request) (*http.Response, error) {
-	d.gotReq = r
-	return nil, nil
+func (d *doer) Do(topic string, event string, data interface{}) error {
+	d.gotTopic = topic
+	d.gotEvent = event
+	d.gotData = data
+	return nil
 }
 func TestPoke(t *testing.T) {
 	assert := assert.New(t)
@@ -95,19 +98,13 @@ func TestPoke(t *testing.T) {
 		impl(w, r, db, d)
 
 		if !tt.wantPoke {
-			assert.Nil(d.gotReq)
+			assert.Empty(d.gotTopic)
+			assert.Empty(d.gotEvent)
+			assert.Empty(d.gotData)
 			return
 		}
 
-		body := &bytes.Buffer{}
-		_, err = io.Copy(body, d.gotReq.Body)
-		assert.NoError(err)
-
-		assert.Equal("POST", d.gotReq.Method)
-		assert.Equal("https://fcm.googleapis.com/fcm/send", d.gotReq.URL.String())
-		assert.Equal(fmt.Sprintf(`{"data": {},  "to": "/topics/u-%d"}`, userID), body.String())
-		assert.Equal("application/json", d.gotReq.Header.Get("Content-type"))
-		assert.Equal("Bearer test_server_key", d.gotReq.Header.Get("Authorization"))
+		assert.Equal(fmt.Sprintf("u-%d", userID), d.gotTopic)
 	}
 
 	f(tc{path: "/serve/replicache-batch", wantPoke: true})

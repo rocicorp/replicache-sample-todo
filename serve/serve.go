@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"roci.dev/replicache-sample-todo/serve/db"
 	"roci.dev/replicache-sample-todo/serve/handlers/batch"
@@ -16,8 +15,8 @@ import (
 	"roci.dev/replicache-sample-todo/serve/model/user"
 	"roci.dev/replicache-sample-todo/serve/mutators/list"
 	"roci.dev/replicache-sample-todo/serve/mutators/todo"
-	"roci.dev/replicache-sample-todo/serve/util/fcm"
 	"roci.dev/replicache-sample-todo/serve/util/httperr"
+	"roci.dev/replicache-sample-todo/serve/util/pusher"
 )
 
 const (
@@ -53,10 +52,10 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	db.Use(name)
 
-	impl(w, r, db, &http.Client{Timeout: 5 * time.Second})
+	impl(w, r, db, pusher.RealDoer{})
 }
 
-func impl(w http.ResponseWriter, r *http.Request, db *db.DB, d fcm.Doer) {
+func impl(w http.ResponseWriter, r *http.Request, db *db.DB, d pusher.Doer) {
 	switch r.URL.Path {
 	case "/serve/login":
 		userhandler.Login(w, r, db)
@@ -101,7 +100,7 @@ func impl(w http.ResponseWriter, r *http.Request, db *db.DB, d fcm.Doer) {
 	}
 
 	if dirty {
-		fcm.Poke(userID, d)
+		pusher.Poke(userID, d)
 	}
 }
 
