@@ -19,10 +19,6 @@ func Create(db *db.DB, name string) (err error) {
 		fmt.Sprintf("CREATE TABLE %s.TodoList (Id INT PRIMARY KEY NOT NULL, OwnerUserId INT NOT NULL, FOREIGN KEY (OwnerUserId) REFERENCES %s.User (Id))", name, name),
 		fmt.Sprintf("CREATE TABLE %s.Todo (Id INT PRIMARY KEY NOT NULL, TodoListId INT NOT NULL, Title VARCHAR(255) NOT NULL, Complete BIT NOT NULL, SortOrder FLOAT(53) NOT NULL, FOREIGN KEY (TodoListId) REFERENCES %s.TodoList (Id))", name, name),
 		fmt.Sprintf("CREATE TABLE %s.Replicache (ClientID VARCHAR(255) PRIMARY KEY NOT NULL, MutationID INT NOT NULL)", name),
-
-		// These initial rows are required by the Flutter quickstart to be present.
-		fmt.Sprintf("INSERT INTO %s.User (Email) VALUES ('test@test.com')", name),
-		fmt.Sprintf("INSERT INTO %s.TodoList (Id, OwnerUserId) VALUES (1, 1)", name),
 	}
 
 	schemaHash := sha1.Sum([]byte(strings.Join(statements, "\n")))
