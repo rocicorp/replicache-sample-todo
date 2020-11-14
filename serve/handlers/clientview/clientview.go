@@ -61,10 +61,10 @@ func Handle(w http.ResponseWriter, r *http.Request, d *db.DB, userID int) {
 		LastMutationID: uint64(lastMutationID),
 	}
 	for _, l := range lists {
-		out.ClientView[fmt.Sprintf("/list/%d", l.ID)] = l
+		out.ClientView[fmt.Sprintf("/list/%d", l.ID)] = list.List(l)
 	}
 	for _, t := range todos {
-		out.ClientView[fmt.Sprintf("/todo/%d", t.ID)] = t
+		out.ClientView[fmt.Sprintf("/todo/%d", t.ID)] = todo.Todo(t)
 	}
 	err = json.NewEncoder(w).Encode(out)
 	if err != nil {

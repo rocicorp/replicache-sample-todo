@@ -49,7 +49,7 @@ func TestUpdate(t *testing.T) {
 		ListID:   1,
 		Text:     "text",
 		Complete: false,
-		Order:    "e",
+		Order:    0.5,
 	}
 	err = todo.Create(db.ExecStatement, tt1)
 	assert.NoError(err)
@@ -59,7 +59,7 @@ func TestUpdate(t *testing.T) {
 		ListID:   2,
 		Text:     "text",
 		Complete: false,
-		Order:    "e",
+		Order:    0.5,
 	}
 	err = todo.Create(db.ExecStatement, tt2)
 	assert.NoError(err)
@@ -69,7 +69,7 @@ func TestUpdate(t *testing.T) {
 		req          string
 		wantErr      error
 		wantComplete bool
-		wantOrder    string
+		wantOrder    float64
 		wantText     string
 	}{
 		{
@@ -102,7 +102,7 @@ func TestUpdate(t *testing.T) {
 			req:          `{"id":1}`,
 			wantErr:      nil,
 			wantComplete: false,
-			wantOrder:    "e",
+			wantOrder:    0.5,
 			wantText:     "text",
 		},
 		{
@@ -110,7 +110,7 @@ func TestUpdate(t *testing.T) {
 			req:          `{"id":1,"complete":true}`,
 			wantErr:      nil,
 			wantComplete: true,
-			wantOrder:    "e",
+			wantOrder:    0.5,
 			wantText:     "text",
 		},
 		{
@@ -118,7 +118,7 @@ func TestUpdate(t *testing.T) {
 			req:          `{"id":1,"complete":true}`,
 			wantErr:      nil,
 			wantComplete: true,
-			wantOrder:    "e",
+			wantOrder:    0.5,
 			wantText:     "text",
 		},
 		{
@@ -126,15 +126,15 @@ func TestUpdate(t *testing.T) {
 			req:          `{"id":1,"complete":false}`,
 			wantErr:      nil,
 			wantComplete: false,
-			wantOrder:    "e",
+			wantOrder:    0.5,
 			wantText:     "text",
 		},
 		{
 			label:        "change-order",
-			req:          `{"id":1,"order":"z"}`,
+			req:          `{"id":1,"order":1.0}`,
 			wantErr:      nil,
 			wantComplete: false,
-			wantOrder:    "z",
+			wantOrder:    1.0,
 			wantText:     "text",
 		},
 		{
@@ -142,23 +142,23 @@ func TestUpdate(t *testing.T) {
 			req:          `{"id":1,"text":"bonk"}`,
 			wantErr:      nil,
 			wantComplete: false,
-			wantOrder:    "z",
+			wantOrder:    1.0,
 			wantText:     "bonk",
 		},
 		{
 			label:        "change-two",
-			req:          `{"id":1,"complete":true,"order":""}`,
+			req:          `{"id":1,"complete":true,"order":0.0}`,
 			wantErr:      nil,
 			wantComplete: true,
-			wantOrder:    "",
+			wantOrder:    0.0,
 			wantText:     "bonk",
 		},
 		{
 			label:        "change-three-zero",
-			req:          `{"id":1,"complete":false,"order":"","text":""}`,
+			req:          `{"id":1,"complete":false,"order":0.0,"text":""}`,
 			wantErr:      nil,
 			wantComplete: false,
-			wantOrder:    "",
+			wantOrder:    0.0,
 			wantText:     "",
 		},
 	}

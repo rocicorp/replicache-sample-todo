@@ -38,7 +38,7 @@ func TestBasic(t *testing.T) {
 		ListID:   43,
 		Text:     "Take out the trash",
 		Complete: true,
-		Order:    "e",
+		Order:    0.5,
 	}
 	err = Create(db.ExecStatement, exp)
 	assert.NoError(err)
@@ -71,14 +71,14 @@ func TestUpdate(t *testing.T) {
 		ListID:   1,
 		Text:     "text",
 		Complete: true,
-		Order:    "a",
+		Order:    0.1,
 	}
 	t2 := Todo{
 		ID:       2,
 		ListID:   1,
 		Text:     "text",
 		Complete: true,
-		Order:    "a",
+		Order:    0.1,
 	}
 	err = Create(db.ExecStatement, t1)
 	assert.NoError(err)
@@ -87,6 +87,9 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(err)
 
 	pb := func(v bool) *bool {
+		return &v
+	}
+	pf := func(v float64) *float64 {
 		return &v
 	}
 	ps := func(v string) *string {
@@ -99,16 +102,16 @@ func TestUpdate(t *testing.T) {
 	}
 	tc := []struct {
 		complete *bool
-		order    *string
+		order    *float64
 		text     *string
 	}{
 		{nil, nil, nil},
 		{pb(false), nil, nil},
-		{nil, ps("b"), nil},
+		{nil, pf(0.2), nil},
 		{nil, nil, ps("foo")},
-		{pb(true), ps("c"), nil},
-		{nil, ps("d"), ps("bar")},
-		{pb(false), ps("e"), ps("baz")},
+		{pb(true), pf(0.3), nil},
+		{nil, pf(0.4), ps("bar")},
+		{pb(false), pf(0.5), ps("baz")},
 	}
 
 	for i, t := range tc {
@@ -155,7 +158,7 @@ func TestDelete(t *testing.T) {
 		ListID:   1,
 		Text:     "text",
 		Complete: true,
-		Order:    "a",
+		Order:    0.1,
 	}
 	err = Create(db.ExecStatement, t1)
 	assert.NoError(err)
@@ -165,7 +168,7 @@ func TestDelete(t *testing.T) {
 		ListID:   1,
 		Text:     "text",
 		Complete: true,
-		Order:    "a",
+		Order:    0.1,
 	}
 	err = Create(db.ExecStatement, t2)
 	assert.NoError(err)
