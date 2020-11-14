@@ -49,7 +49,7 @@ func TestDelete(t *testing.T) {
 		ListID:   1,
 		Text:     "text",
 		Complete: false,
-		Order:    0.5,
+		Order:    "e",
 	}
 	err = todo.Create(db.ExecStatement, tt1)
 	assert.NoError(err)
@@ -59,7 +59,7 @@ func TestDelete(t *testing.T) {
 		ListID:   2,
 		Text:     "text",
 		Complete: false,
-		Order:    0.5,
+		Order:    "e",
 	}
 	err = todo.Create(db.ExecStatement, tt2)
 	assert.NoError(err)

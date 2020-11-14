@@ -7,11 +7,12 @@ import (
 )
 
 type Todo struct {
-	ID       int     `json:"id"`
-	ListID   int     `json:"listId"`
-	Text     string  `json:"text"`
-	Complete bool    `json:"complete"`
-	Order    float64 `json:"order"`
+	ID          int    `json:"id"`
+	ListID      int    `json:"listId"`
+	Text        string `json:"text"`
+	Complete    bool   `json:"complete"`
+	LegacyOrder string `json:"order"`
+	Order       string `json:"order_str"`
 }
 
 type OwnedTodo struct {
@@ -32,7 +33,7 @@ func Create(exec db.ExecFunc, todo Todo) error {
 	return err
 }
 
-func Update(exec db.ExecFunc, id int, complete *bool, order *float64, title *string) error {
+func Update(exec db.ExecFunc, id int, complete *bool, order *string, title *string) error {
 	log.Printf("Updating: id: %#v, complete: %#v, order: %#v, title: %#v", id, complete, order, title)
 	_, err := exec(
 		`UPDATE Todo SET Complete=COALESCE(:complete,Complete), SortOrder=COALESCE(:order,SortOrder), Title=COALESCE(:title,Title) WHERE Id=:id`,
@@ -74,7 +75,7 @@ func Get(exec db.ExecFunc, id int) (t OwnedTodo, ok bool, err error) {
 			ListID:   int(*output.Records[0][1].LongValue),
 			Text:     *output.Records[0][2].StringValue,
 			Complete: *output.Records[0][3].BooleanValue,
-			Order:    *output.Records[0][4].DoubleValue,
+			Order:    *output.Records[0][4].StringValue,
 		},
 		OwnerUserID: int(*output.Records[0][5].LongValue),
 	}, true, nil
@@ -91,7 +92,7 @@ func GetByUser(exec db.ExecFunc, userID int) (r []Todo, err error) {
 			ListID:   int(*rec[1].LongValue),
 			Text:     *rec[2].StringValue,
 			Complete: *rec[3].BooleanValue,
-			Order:    *rec[4].DoubleValue,
+			Order:    *rec[4].StringValue,
 		})
 	}
 	return r, nil
