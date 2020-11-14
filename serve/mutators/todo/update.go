@@ -10,10 +10,10 @@ import (
 )
 
 type UpdateInput struct {
-	ID       int     `json:"id"`
-	Text     *string `json:"text,omitempty"`
-	Complete *bool   `json:"complete,omitempty"`
-	Order    *string `json:"order,omitempty"`
+	ID       int      `json:"id"`
+	Text     *string  `json:"text,omitempty"`
+	Complete *bool    `json:"complete,omitempty"`
+	Order    *float64 `json:"order,omitempty"`
 }
 
 func Update(r io.Reader, exec db.ExecFunc, userID int) error {
