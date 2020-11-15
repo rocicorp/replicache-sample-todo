@@ -41,6 +41,7 @@ func TestClientView(t *testing.T) {
 	err = todo.Create(db.ExecStatement, todo.Todo{
 		ID:     3,
 		ListID: 2,
+		Order:  "a0",
 	})
 	assert.NoError(err)
 
@@ -54,8 +55,8 @@ func TestClientView(t *testing.T) {
 		wantCode     int
 		wantResponse string
 	}{
-		{userID, `{"clientID":"c1"}`, true, http.StatusOK, `{"clientView":{"/list/2":{"id":2,"ownerUserID":1},"/todo/3":{"id":3,"listId":2,"text":"","complete":false,"order":0}},"lastMutationID":1}`},
-		{userID, `{"clientID":"c2"}`, true, http.StatusOK, `{"clientView":{"/list/2":{"id":2,"ownerUserID":1},"/todo/3":{"id":3,"listId":2,"text":"","complete":false,"order":0}},"lastMutationID":0}`},
+		{userID, `{"clientID":"c1"}`, true, http.StatusOK, `{"clientView":{"/list/2":{"id":2,"ownerUserID":1},"/todo/3":{"id":3,"listId":2,"text":"","complete":false,"order":"a0"}},"lastMutationID":1}`},
+		{userID, `{"clientID":"c2"}`, true, http.StatusOK, `{"clientView":{"/list/2":{"id":2,"ownerUserID":1},"/todo/3":{"id":3,"listId":2,"text":"","complete":false,"order":"a0"}},"lastMutationID":0}`},
 	}
 
 	for i, t := range tc {

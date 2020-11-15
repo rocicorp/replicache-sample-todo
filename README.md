@@ -14,13 +14,13 @@ Persistence is against AWS Aurora (MySQL flavor).
 1. run `now login` to get zeit credentials
 1. Get the Rocicorp AWS credentials and put them in (.aws/credentials) on your machine
 1. Add `.env` file to the root of this repository containing:
-    ```
-    REPLICANT_AWS_ACCESS_KEY_ID=<access key from .aws/credentials>
-    REPLICANT_AWS_SECRET_ACCESS_KEY=<secret access key from .aws/credentials>
-    REPLICANT_SAMPLE_TODO_ENV=dev_<your Rocicorp username>
-    FCM_SERVER_KEY=<Firebase Cloud Messaging Server Key>
-    ```
-    For Rocicorp's internal values, see "passwords" in Google Drive.
+   ```
+   REPLICANT_AWS_ACCESS_KEY_ID=<access key from .aws/credentials>
+   REPLICANT_AWS_SECRET_ACCESS_KEY=<secret access key from .aws/credentials>
+   REPLICANT_SAMPLE_TODO_ENV=dev_<your Rocicorp username>
+   FCM_SERVER_KEY=<Firebase Cloud Messaging Server Key>
+   ```
+   For Rocicorp's internal values, see "passwords" in Google Drive.
 1. Run unit tests with no parallelism ` go test -p 1 ./...`. Note: tests depend on RDS and are therefore flaky.
 1. Run `now dev`
 
@@ -49,7 +49,7 @@ curl -d '{"email":"foo@bar.com"}' https://replicache-sample-todo.now.sh/serve/lo
 # Create a TODO
 # If the List ID is unknown, it is implicity created.
 curl -H 'Authorization: <userid>'  -H "Content-type: application/json" \
-  -d '{"id": 1, "listID": 1, "text": "Take out the trash", "complete": true, "order": 0.5}' \
+  -d '{"id": 1, "listID": 1, "text": "Take out the trash", "complete": true, "order": "a0"}' \
   https://replicache-sample-todo.now.sh/serve/todo-create
 
 # Get current Client View
