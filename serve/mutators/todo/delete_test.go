@@ -24,15 +24,12 @@ func TestDelete(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
-	assert.NoError(err)
-
 	otherUserID, err := user.Create(db.ExecStatement, "bar@bar.com")
 	assert.NoError(err)
 
 	l := list.List{
 		ID:          1,
-		OwnerUserID: userID,
+		OwnerUserID: 1,
 	}
 	err = list.Create(db.ExecStatement, l)
 	assert.NoError(err)
