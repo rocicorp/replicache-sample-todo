@@ -28,7 +28,7 @@ func TestBasic(t *testing.T) {
 
 	max, err := GetMax(db.ExecStatement)
 	assert.NoError(err)
-	assert.Equal(0, max)
+	assert.Equal(1, max)
 
 	exp := List{
 		ID:          42,

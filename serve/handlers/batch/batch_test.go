@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"roci.dev/replicache-sample-todo/serve/db"
-	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/replicache"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
 	"roci.dev/replicache-sample-todo/serve/model/todo"
@@ -27,12 +26,6 @@ func TestHandle(t *testing.T) {
 	assert.NoError(err)
 
 	db.Use("test")
-
-	err = list.Create(db.ExecStatement, list.List{
-		ID:          1,
-		OwnerUserID: 1,
-	})
-	assert.NoError(err)
 
 	tc := []struct {
 		label          string

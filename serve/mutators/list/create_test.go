@@ -23,9 +23,6 @@ func TestCreate(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
-	assert.NoError(err)
-
 	otherUserID, err := user.Create(db.ExecStatement, "bar@bar.com")
 	assert.NoError(err)
 
@@ -34,11 +31,11 @@ func TestCreate(t *testing.T) {
 		request string
 		wantErr error
 	}{
-		{userID, ``, errs.NewBadRequestError(`EOF`)},
-		{userID, `notjson`, errs.NewBadRequestError(`invalid character 'o' in literal null (expecting 'u')`)},
-		{userID, `{}`, errs.NewBadRequestError(`id field is required`)},
-		{userID, `{"id":1}`, nil},
-		{userID, `{"id":1}`, errs.NewBadRequestError(`specified list already exists: 1`)},
+		{1, ``, errs.NewBadRequestError(`EOF`)},
+		{1, `notjson`, errs.NewBadRequestError(`invalid character 'o' in literal null (expecting 'u')`)},
+		{1, `{}`, errs.NewBadRequestError(`id field is required`)},
+		{1, `{"id":2}`, nil},
+		{1, `{"id":1}`, errs.NewBadRequestError(`specified list already exists: 1`)},
 		{otherUserID, `{"id":1}`, errs.NewBadRequestError(`specified list already exists: 1`)},
 	}
 
