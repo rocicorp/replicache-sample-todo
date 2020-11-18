@@ -57,12 +57,9 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(err)
 	db.Use("test")
 
-	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
-	assert.NoError(err)
-
 	err = list.Create(db.ExecStatement, list.List{
 		ID:          1,
-		OwnerUserID: userID,
+		OwnerUserID: 1,
 	})
 	assert.NoError(err)
 

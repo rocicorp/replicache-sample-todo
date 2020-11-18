@@ -35,9 +35,9 @@ func TestLogin(t *testing.T) {
 	}{
 		{``, http.StatusBadRequest, 0, "EOF", false},
 		{`{}`, http.StatusBadRequest, 0, "email field is required", false},
-		{`{"email":"foo@foo.com"}`, http.StatusOK, 1, "", true},
-		{`{"email":"foo@bar.com"}`, http.StatusOK, 2, "", true},
-		{`{"email":"foo@foo.com"}`, http.StatusOK, 1, "", false},
+		{`{"email":"foo@foo.com"}`, http.StatusOK, 2, "", true},
+		{`{"email":"foo@bar.com"}`, http.StatusOK, 3, "", true},
+		{`{"email":"foo@foo.com"}`, http.StatusOK, 2, "", false},
 	}
 
 	for i, t := range tc {

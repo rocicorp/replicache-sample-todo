@@ -15,7 +15,6 @@ import (
 	"roci.dev/replicache-sample-todo/serve/model/replicache"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
 	"roci.dev/replicache-sample-todo/serve/model/todo"
-	"roci.dev/replicache-sample-todo/serve/model/user"
 )
 
 func TestHandle(t *testing.T) {
@@ -29,12 +28,9 @@ func TestHandle(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
-	assert.NoError(err)
-
 	err = list.Create(db.ExecStatement, list.List{
 		ID:          1,
-		OwnerUserID: userID,
+		OwnerUserID: 1,
 	})
 	assert.NoError(err)
 
@@ -219,7 +215,7 @@ func TestHandle(t *testing.T) {
 		msg := fmt.Sprintf("test case %s", t.label)
 		w := httptest.NewRecorder()
 
-		Handle(w, httptest.NewRequest("POST", "/replicache-batch", strings.NewReader(t.req)), db, userID)
+		Handle(w, httptest.NewRequest("POST", "/replicache-batch", strings.NewReader(t.req)), db, 1)
 
 		assert.Equal(t.wantCode, w.Result().StatusCode, msg)
 		body := &bytes.Buffer{}
