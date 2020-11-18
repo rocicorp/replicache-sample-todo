@@ -24,20 +24,10 @@ func TestCreate(t *testing.T) {
 
 	db.Use("test")
 
-	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
-	assert.NoError(err)
-
 	otherUserID, err := user.Create(db.ExecStatement, "bar@bar.com")
 	assert.NoError(err)
 
 	l := list.List{
-		ID:          2,
-		OwnerUserID: userID,
-	}
-	err = list.Create(db.ExecStatement, l)
-	assert.NoError(err)
-
-	l = list.List{
 		ID:          3,
 		OwnerUserID: otherUserID,
 	}
@@ -49,14 +39,14 @@ func TestCreate(t *testing.T) {
 		request string
 		wantErr error
 	}{
-		{userID, ``, errs.NewBadRequestError(`EOF`)},
-		{userID, `notjson`, errs.NewBadRequestError(`invalid character 'o' in literal null (expecting 'u')`)},
-		{userID, `{}`, errs.NewBadRequestError(`id field is required`)},
-		{userID, `{"id":1}`, errs.NewBadRequestError(`listID field is required`)},
-		{userID, `{"id":1,"listID":2}`, nil},
-		{userID, `{"id":1,"listID":2}`, errs.NewBadRequestError(`specified todo already exists: 1`)},
-		{userID, `{"id":2,"listID":7}`, errs.NewBadRequestError(`specified list does not exist: 7`)},
-		{userID, `{"id":2,"listID":3}`, errs.NewUnauthorizedError(`cannot access specified list: 3`)},
+		{1, ``, errs.NewBadRequestError(`EOF`)},
+		{1, `notjson`, errs.NewBadRequestError(`invalid character 'o' in literal null (expecting 'u')`)},
+		{1, `{}`, errs.NewBadRequestError(`id field is required`)},
+		{1, `{"id":1}`, errs.NewBadRequestError(`listID field is required`)},
+		{1, `{"id":1,"listID":1}`, nil},
+		{1, `{"id":1,"listID":1}`, errs.NewBadRequestError(`specified todo already exists: 1`)},
+		{1, `{"id":2,"listID":7}`, errs.NewBadRequestError(`specified list does not exist: 7`)},
+		{1, `{"id":2,"listID":3}`, errs.NewUnauthorizedError(`cannot access specified list: 3`)},
 	}
 
 	for i, t := range tc {

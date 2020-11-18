@@ -22,6 +22,7 @@ func Create(db *db.DB, name string) (err error) {
 
 		// test user required by demos
 		fmt.Sprintf("INSERT INTO %s.User (Id, Email) Values (1, 'test@test.com')", name),
+		fmt.Sprintf("INSERT INTO %s.TodoList (Id, OwnerUserId) Values (1, 1)", name),
 	}
 
 	schemaHash := sha1.Sum([]byte(strings.Join(statements, "\n")))

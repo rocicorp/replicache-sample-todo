@@ -57,12 +57,6 @@ func TestUpdate(t *testing.T) {
 	assert.NoError(err)
 	db.Use("test")
 
-	err = list.Create(db.ExecStatement, list.List{
-		ID:          1,
-		OwnerUserID: 1,
-	})
-	assert.NoError(err)
-
 	t1 := Todo{
 		ID:       1,
 		ListID:   1,
@@ -137,15 +131,6 @@ func TestDelete(t *testing.T) {
 	err = schema.Create(db, "test")
 	assert.NoError(err)
 	db.Use("test")
-
-	userID, err := user.Create(db.ExecStatement, "foo@foo.com")
-	assert.NoError(err)
-
-	err = list.Create(db.ExecStatement, list.List{
-		ID:          1,
-		OwnerUserID: userID,
-	})
-	assert.NoError(err)
 
 	t1 := Todo{
 		ID:       1,

@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"roci.dev/replicache-sample-todo/serve/db"
-	"roci.dev/replicache-sample-todo/serve/model/list"
 	"roci.dev/replicache-sample-todo/serve/model/replicache"
 	"roci.dev/replicache-sample-todo/serve/model/schema"
 	"roci.dev/replicache-sample-todo/serve/model/todo"
@@ -28,15 +27,9 @@ func TestClientView(t *testing.T) {
 
 	db.Use("test")
 
-	err = list.Create(db.ExecStatement, list.List{
-		ID:          2,
-		OwnerUserID: 1,
-	})
-	assert.NoError(err)
-
 	err = todo.Create(db.ExecStatement, todo.Todo{
 		ID:     3,
-		ListID: 2,
+		ListID: 1,
 		Order:  "a0",
 	})
 	assert.NoError(err)
@@ -51,8 +44,8 @@ func TestClientView(t *testing.T) {
 		wantCode     int
 		wantResponse string
 	}{
-		{1, `{"clientID":"c1"}`, true, http.StatusOK, `{"clientView":{"/list/2":{"id":2,"ownerUserID":1},"/todo/3":{"id":3,"listId":2,"text":"","complete":false,"order":"a0"}},"lastMutationID":1}`},
-		{1, `{"clientID":"c2"}`, true, http.StatusOK, `{"clientView":{"/list/2":{"id":2,"ownerUserID":1},"/todo/3":{"id":3,"listId":2,"text":"","complete":false,"order":"a0"}},"lastMutationID":0}`},
+		{1, `{"clientID":"c1"}`, true, http.StatusOK, `{"clientView":{"/list/1":{"id":1,"ownerUserID":1},"/todo/3":{"id":3,"listId":1,"text":"","complete":false,"order":"a0"}},"lastMutationID":1}`},
+		{1, `{"clientID":"c2"}`, true, http.StatusOK, `{"clientView":{"/list/1":{"id":1,"ownerUserID":1},"/todo/3":{"id":3,"listId":1,"text":"","complete":false,"order":"a0"}},"lastMutationID":0}`},
 	}
 
 	for i, t := range tc {
