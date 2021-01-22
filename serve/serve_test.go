@@ -110,6 +110,7 @@ func TestPoke(t *testing.T) {
 	f(tc{path: "/serve/replicache-batch", wantPoke: true})
 	f(tc{path: "/serve/replicache-client-view", wantPoke: false})
 	f(tc{path: "/serve/list-create", wantPoke: true})
+	f(tc{path: "/serve/list-delete", wantPoke: true})
 	f(tc{path: "/serve/todo-create", wantPoke: true})
 	f(tc{path: "/serve/todo-update", wantPoke: true})
 	f(tc{path: "/serve/todo-delete", wantPoke: true})

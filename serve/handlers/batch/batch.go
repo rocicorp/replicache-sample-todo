@@ -139,6 +139,8 @@ func processMutation(m mutation, userID int, exec db.ExecFunc) error {
 	switch m.Name {
 	case "createList":
 		err = list.Create(r, exec, userID)
+	case "deleteList":
+		err = list.Delete(r, exec, userID)
 	case "createTodo":
 		err = todo.Create(r, exec, userID)
 	case "updateTodo":

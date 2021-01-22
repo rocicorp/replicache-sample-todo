@@ -79,6 +79,11 @@ func impl(w http.ResponseWriter, r *http.Request, db *db.DB, d pusher.Doer) {
 			return list.Create(r.Body, db.ExecStatement, userID)
 		})
 		dirty = true
+	case "/serve/list-delete":
+		mutator.Handle(w, func() error {
+			return list.Delete(r.Body, db.ExecStatement, userID)
+		})
+		dirty = true
 	case "/serve/todo-create":
 		mutator.Handle(w, func() error {
 			return todo.Create(r.Body, db.ExecStatement, userID)
