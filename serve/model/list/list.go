@@ -52,3 +52,9 @@ func Create(exec db.ExecFunc, list List) error {
 	_, err := exec("INSERT INTO TodoList (Id, OwnerUserId) VALUES (:id, :owner)", db.Params{"id": list.ID, "owner": list.OwnerUserID})
 	return err
 }
+
+func Delete(exec db.ExecFunc, id int) error {
+	_, err := exec(`DELETE FROM TodoList WHERE Id = :id`, db.Params{"id": id})
+	// Items from Todo will be deleted because ON DELETE CASCADE
+	return err
+}

@@ -57,4 +57,11 @@ func TestBasic(t *testing.T) {
 	assert.NoError(err)
 
 	assert.Equal([]List{exp, exp2}, act2)
+
+	err = Delete(db.ExecStatement, 42)
+	assert.NoError(err)
+
+	act3, err := GetByUser(db.ExecStatement, userID)
+	assert.NoError(err)
+	assert.Equal([]List{exp2}, act3)
 }
